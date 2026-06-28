@@ -1,0 +1,365 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Neighborhood Parking Observatory</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="sidebar" aria-label="Application navigation">
+        <div class="brand">
+          <div class="brand-mark" aria-hidden="true">NPO</div>
+          <div>
+            <h1>Parking Observatory</h1>
+            <p>Evidence for neighborhood parking decisions</p>
+          </div>
+        </div>
+
+        <nav class="nav-tabs" aria-label="Sections">
+          <button class="nav-tab active" data-view="map">Map</button>
+          <button class="nav-tab" data-view="dashboard">Dashboard</button>
+          <button class="nav-tab" data-view="suggestions">Ideas</button>
+          <button class="nav-tab" data-view="education">Guide</button>
+          <button class="nav-tab" data-view="reports">Reports</button>
+          <button class="nav-tab" data-view="admin">Admin</button>
+        </nav>
+
+        <section class="sidebar-panel">
+          <div class="section-title">
+            <span>Neighborhood</span>
+            <strong>Nowy Port</strong>
+          </div>
+          <div class="boundary-card">
+            <span class="boundary-dot"></span>
+            <p>Boundary active. Reports outside the polygon are ignored.</p>
+          </div>
+        </section>
+
+        <section class="sidebar-panel">
+          <div class="section-title">
+            <span>Quick Stats</span>
+            <strong id="quickOccupancy">84%</strong>
+          </div>
+          <div class="mini-bars" aria-label="Vehicle category distribution">
+            <div style="--h: 72%"></div>
+            <div style="--h: 44%"></div>
+            <div style="--h: 58%"></div>
+            <div style="--h: 30%"></div>
+            <div style="--h: 64%"></div>
+            <div style="--h: 24%"></div>
+          </div>
+        </section>
+
+        <button class="primary-action" id="openReport">
+          <span class="plus-icon" aria-hidden="true"></span>
+          Report vehicle
+        </button>
+      </aside>
+
+      <main class="workspace">
+        <header class="topbar">
+          <div>
+            <p class="eyebrow">Community validated civic data</p>
+            <h2 id="viewTitle">Interactive Map</h2>
+          </div>
+          <div class="topbar-actions">
+            <label class="search-box">
+              <span aria-hidden="true"></span>
+              <input id="searchInput" type="search" placeholder="Search street, type, status" />
+            </label>
+            <button class="ghost-button" id="exportCsv">Export CSV</button>
+          </div>
+        </header>
+
+        <section class="view active" id="mapView" aria-label="Map view">
+          <div class="map-layout">
+            <section class="map-stage" aria-label="Neighborhood map">
+              <div class="map-toolbar">
+                <div class="segmented" role="group" aria-label="Map layers">
+                  <button class="active" data-layer="pins">Pins</button>
+                  <button data-layer="heat">Heatmap</button>
+                  <button data-layer="zones">Zones</button>
+                </div>
+                <div class="map-stat">
+                  <span id="visibleReports">12</span>
+                  visible reports
+                </div>
+              </div>
+              <div class="map-canvas" id="mapCanvas">
+                <div class="boundary-shape"></div>
+                <div class="street street-a">Harbor Street</div>
+                <div class="street street-b">Market Lane</div>
+                <div class="street street-c">School Road</div>
+                <div class="street street-d">Depot Avenue</div>
+                <div class="street street-e">Park Row</div>
+                <div class="zone zone-paid">Future paid zone</div>
+                <div class="zone zone-project">Street redesign</div>
+                <div class="heat heat-a"></div>
+                <div class="heat heat-b"></div>
+                <div class="heat heat-c"></div>
+                <div id="pinsLayer"></div>
+              </div>
+            </section>
+
+            <aside class="inspector" aria-label="Selected vehicle">
+              <div class="inspector-header">
+                <p class="eyebrow">Selected observation</p>
+                <span class="status-pill verified" id="selectedStatus">Verified</span>
+              </div>
+              <h3 id="selectedName">Blue passenger car</h3>
+              <p id="selectedSummary">Observed repeatedly on Harbor Street with high location consistency.</p>
+
+              <dl class="detail-grid">
+                <div>
+                  <dt>First observed</dt>
+                  <dd id="selectedFirst">May 14</dd>
+                </div>
+                <div>
+                  <dt>Last confirmed</dt>
+                  <dd id="selectedLast">Today</dd>
+                </div>
+                <div>
+                  <dt>Days parked</dt>
+                  <dd id="selectedDays">44</dd>
+                </div>
+                <div>
+                  <dt>Confirmations</dt>
+                  <dd id="selectedConfirmations">12</dd>
+                </div>
+              </dl>
+
+              <div class="confidence">
+                <div>
+                  <span>Confidence</span>
+                  <strong id="selectedConfidenceLabel">98%</strong>
+                </div>
+                <div class="progress"><span id="selectedConfidence" style="width: 98%"></span></div>
+              </div>
+
+              <div class="privacy-box">
+                <strong>Privacy controls active</strong>
+                <p>Plate data is masked for public visitors. Photos are blurred when sensitive details are detected.</p>
+              </div>
+
+              <div class="inspector-actions">
+                <button class="primary-small" id="confirmVehicle">I saw this today</button>
+                <button class="ghost-button" id="flagVehicle">Flag issue</button>
+              </div>
+
+              <div class="timeline" id="timeline"></div>
+            </aside>
+          </div>
+        </section>
+
+        <section class="view" id="dashboardView" aria-label="Dashboard view">
+          <div class="metrics-grid">
+            <article class="metric-card"><span>Total reports</span><strong id="metricReports">318</strong><p>Across the active neighborhood polygon</p></article>
+            <article class="metric-card"><span>Currently parked</span><strong id="metricCurrent">187</strong><p>Confirmed within the last 72 hours</p></article>
+            <article class="metric-card"><span>Over 30 days</span><strong id="metricThirty">28</strong><p>Potential long-term occupancy pressure</p></article>
+            <article class="metric-card"><span>Average duration</span><strong id="metricAverage">11.8d</strong><p>Median street-side stay is 5.5 days</p></article>
+          </div>
+
+          <div class="dashboard-grid">
+            <article class="chart-panel">
+              <div class="panel-heading">
+                <h3>Daily Occupancy Trend</h3>
+                <span>Last 14 days</span>
+              </div>
+              <div class="line-chart" aria-label="Occupancy trend">
+                <svg viewBox="0 0 620 220" role="img" aria-label="Line chart showing rising parking occupancy">
+                  <polyline points="0,154 48,148 96,160 144,130 192,124 240,110 288,120 336,98 384,92 432,88 480,76 528,84 576,62 620,56" />
+                  <path d="M0 154 L48 148 L96 160 L144 130 L192 124 L240 110 L288 120 L336 98 L384 92 L432 88 L480 76 L528 84 L576 62 L620 56 L620 220 L0 220 Z" />
+                </svg>
+              </div>
+            </article>
+
+            <article class="chart-panel">
+              <div class="panel-heading">
+                <h3>Vehicle Distribution</h3>
+                <span>Validated reports</span>
+              </div>
+              <div class="donut-wrap">
+                <div class="donut" aria-hidden="true"></div>
+                <ul class="legend">
+                  <li><span class="swatch car"></span>Passenger cars 61%</li>
+                  <li><span class="swatch commercial"></span>Vans and trucks 18%</li>
+                  <li><span class="swatch trailer"></span>Trailers and campers 13%</li>
+                  <li><span class="swatch other"></span>Other 8%</li>
+                </ul>
+              </div>
+            </article>
+
+            <article class="chart-panel wide">
+              <div class="panel-heading">
+                <h3>Street Segments</h3>
+                <span>Capacity, occupancy, long-term share</span>
+              </div>
+              <div class="street-table" id="streetTable"></div>
+            </article>
+          </div>
+        </section>
+
+        <section class="view" id="suggestionsView" aria-label="Suggestions view">
+          <div class="suggestion-layout">
+            <form class="suggestion-form" id="suggestionForm">
+              <h3>Civic Suggestion Board</h3>
+              <label>Proposal type
+                <select name="type">
+                  <option>Resident parking</option>
+                  <option>Traffic calming</option>
+                  <option>Loading zone</option>
+                  <option>Street redesign</option>
+                  <option>Bike parking</option>
+                </select>
+              </label>
+              <label>Street or area
+                <input name="street" placeholder="Example: Harbor Street" />
+              </label>
+              <label>Suggestion
+                <textarea name="text" rows="5" placeholder="Describe a constructive parking or public-space improvement"></textarea>
+              </label>
+              <button class="primary-small" type="submit">Submit idea</button>
+            </form>
+            <div class="idea-list" id="ideaList"></div>
+          </div>
+        </section>
+
+        <section class="view" id="educationView" aria-label="Education view">
+          <div class="guide-grid">
+            <article><h3>Parking vs. Abandonment</h3><p>Long presence is evidence of occupancy pressure, not proof of abandonment. Official reporting thresholds vary by city.</p></article>
+            <article><h3>Trailer Rules</h3><p>Trailers often have different public-street limits. The app tracks them separately so policy conversations stay specific.</p></article>
+            <article><h3>Resident Parking</h3><p>Permit zones can prioritize local access, but they work best when paired with capacity and turnover evidence.</p></article>
+            <article><h3>Paid Parking</h3><p>Pricing can improve turnover in high-demand areas. The observatory helps identify where demand is persistent.</p></article>
+            <article><h3>Urban Planning</h3><p>Parking observations can support curb redesign, loading zones, bike parking, greenery, and safer crossings.</p></article>
+            <article><h3>Official Links</h3><p>City reports should go through official channels. This platform prepares neutral evidence for those conversations.</p></article>
+          </div>
+        </section>
+
+        <section class="view" id="reportsView" aria-label="Reports view">
+          <div class="report-builder">
+            <section>
+              <h3>Government-ready Report</h3>
+              <p>Generate a neutral evidence packet with occupancy, duration, vehicle distribution, and GIS-friendly exports.</p>
+              <div class="report-options">
+                <label><input type="checkbox" checked /> Occupancy charts</label>
+                <label><input type="checkbox" checked /> Vehicle distribution</label>
+                <label><input type="checkbox" checked /> Long-term timeline</label>
+                <label><input type="checkbox" /> Heatmap appendix</label>
+                <label><input type="checkbox" /> GIS export</label>
+              </div>
+              <div class="button-row">
+                <button class="primary-small" id="generatePdf">Generate PDF</button>
+                <button class="ghost-button" id="downloadGis">GIS export</button>
+              </div>
+            </section>
+            <aside class="report-preview">
+              <div class="paper">
+                <span>Neighborhood Parking Observatory</span>
+                <h4>Monthly Parking Utilization Brief</h4>
+                <p>Occupancy: 84%</p>
+                <p>Vehicles over 30 days: 28</p>
+                <p>Highest pressure: Harbor Street</p>
+                <div class="paper-chart"></div>
+              </div>
+            </aside>
+          </div>
+        </section>
+
+        <section class="view" id="adminView" aria-label="Admin view">
+          <div class="admin-grid">
+            <article class="admin-panel">
+              <h3>Moderation Queue</h3>
+              <div class="queue-item"><span>Likely duplicate</span><strong>Blue car near Harbor Street</strong><button>Merge</button></div>
+              <div class="queue-item"><span>Photo review</span><strong>Plate masking confidence 72%</strong><button>Approve</button></div>
+              <div class="queue-item"><span>Spam signal</span><strong>Repeated vague report</strong><button>Review</button></div>
+            </article>
+            <article class="admin-panel">
+              <h3>Capacity Manager</h3>
+              <label>Estimated parking spaces <input type="number" value="224" /></label>
+              <label>Restricted spaces <input type="number" value="18" /></label>
+              <label>Disabled spaces <input type="number" value="7" /></label>
+              <label>Loading zones <input type="number" value="5" /></label>
+            </article>
+            <article class="admin-panel">
+              <h3>AI Quality Signals</h3>
+              <div class="signal"><span>Duplicate detection</span><strong>92%</strong></div>
+              <div class="signal"><span>Photo privacy masking</span><strong>88%</strong></div>
+              <div class="signal"><span>Vehicle classification</span><strong>94%</strong></div>
+              <div class="signal"><span>Anomaly detection</span><strong>Active</strong></div>
+            </article>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <dialog class="report-dialog" id="reportDialog">
+      <form method="dialog" class="report-form" id="reportForm">
+        <div class="dialog-heading">
+          <div>
+            <p class="eyebrow">New observation</p>
+            <h3>Report a vehicle</h3>
+          </div>
+          <button class="icon-button" value="cancel" aria-label="Close">x</button>
+        </div>
+        <div class="form-grid">
+          <label>Street
+            <select name="street" required>
+              <option>Harbor Street</option>
+              <option>Market Lane</option>
+              <option>School Road</option>
+              <option>Depot Avenue</option>
+              <option>Park Row</option>
+            </select>
+          </label>
+          <label>Vehicle type
+            <select name="type" required>
+              <option>Passenger car</option>
+              <option>Van</option>
+              <option>Truck</option>
+              <option>Motorcycle</option>
+              <option>Trailer</option>
+              <option>Camper</option>
+              <option>Car with trailer</option>
+              <option>Construction vehicle</option>
+              <option>Unknown</option>
+            </select>
+          </label>
+          <label>Color
+            <input name="color" required placeholder="Example: blue" />
+          </label>
+          <label>Approximate size
+            <select name="size">
+              <option>Compact</option>
+              <option>Medium</option>
+              <option>Large</option>
+              <option>Oversized</option>
+            </select>
+          </label>
+          <label>Manufacturer
+            <input name="make" placeholder="Optional" />
+          </label>
+          <label>Masked plate
+            <input name="plate" placeholder="Example: GD-***-42" />
+          </label>
+          <label class="full">Notes
+            <textarea name="notes" rows="4" placeholder="Neutral observation notes"></textarea>
+          </label>
+        </div>
+        <div class="duplicate-card" id="duplicateCard">
+          <strong>Possible match found</strong>
+          <p>Similar color and location to an existing vehicle on Harbor Street. Confirm the existing report if it is the same vehicle.</p>
+        </div>
+        <div class="dialog-actions">
+          <button class="ghost-button" value="cancel">Cancel</button>
+          <button class="primary-small" value="default" id="submitReport">Submit as pending</button>
+        </div>
+      </form>
+    </dialog>
+
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+    <script src="./app.js"></script>
+  </body>
+</html>
