@@ -1,0 +1,17 @@
+{
+  "name": "parking-observatory",
+  "version": "1.0.0",
+  "description": "Neighborhood Parking Observatory — Bouchestraße, Berlin",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "better-sqlite3": "^9.4.3",
+    "crypto": "^1.0.1"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

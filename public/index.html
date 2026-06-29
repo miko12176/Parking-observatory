@@ -1,0 +1,995 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Parking Observatory · Bouchestraße</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<style>
+:root {
+  --teal:#1D9E75;--teal-light:#E1F5EE;--teal-dark:#0F6E56;
+  --orange:#D06A12;--orange-light:#FCE8D5;
+  --red:#C93A3A;--red-light:#FAECE7;
+  --amber:#BA7517;--amber-light:#FAEEDA;
+  --gray-50:#F7F7F5;--gray-100:#EEEDE8;--gray-200:#D5D3CC;
+  --gray-400:#8C8B84;--gray-600:#5A5955;--gray-900:#1C1C1A;
+  --white:#FFFFFF;
+  --border:rgba(0,0,0,.09);--border-med:rgba(0,0,0,.14);
+  --shadow-sm:0 1px 4px rgba(0,0,0,.08);
+  --shadow-md:0 4px 24px rgba(0,0,0,.14);
+  --r-sm:6px;--r-md:10px;--r-lg:14px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden}
+body{font-family:-apple-system,'Inter','Segoe UI',sans-serif;font-size:14px;color:var(--gray-900);background:var(--gray-50);display:flex;flex-direction:column}
+
+.topbar{height:52px;background:var(--white);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 14px;gap:10px;flex-shrink:0;z-index:1000}
+.logo{display:flex;align-items:center;gap:7px;font-weight:700;font-size:13px;letter-spacing:-.02em;white-space:nowrap}
+.logo-icon{width:26px;height:26px;background:var(--teal);border-radius:6px;display:flex;align-items:center;justify-content:center}
+.logo-icon svg{width:14px;height:14px;fill:none;stroke:white;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+.filter-group{display:flex;gap:4px;flex:1;overflow-x:auto;scrollbar-width:none}
+.filter-group::-webkit-scrollbar{display:none}
+.filter-btn{padding:5px 11px;border-radius:20px;border:1px solid var(--border-med);background:transparent;font-size:11px;font-weight:500;color:var(--gray-600);cursor:pointer;white-space:nowrap;transition:all .15s}
+.filter-btn:hover{background:var(--gray-50);color:var(--gray-900)}
+.filter-btn.active{background:var(--gray-900);color:white;border-color:var(--gray-900)}
+.topbar-right{display:flex;gap:7px;align-items:center;margin-left:auto}
+.btn-icon{width:32px;height:32px;border-radius:var(--r-sm);border:1px solid var(--border-med);background:transparent;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--gray-600);transition:all .15s;flex-shrink:0}
+.btn-icon:hover{background:var(--gray-50);color:var(--gray-900)}
+.btn-icon svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round}
+.btn-icon.active-heat{background:var(--teal-light);border-color:var(--teal);color:var(--teal)}
+
+.layout{display:flex;flex:1;overflow:hidden;min-height:0}
+#map{flex:1;z-index:1;cursor:crosshair}
+.leaflet-container{font-family:inherit}
+.leaflet-control-attribution{font-size:9px}
+.leaflet-popup-content-wrapper{border-radius:var(--r-md)!important;box-shadow:var(--shadow-md)!important;border:1px solid var(--border)!important;padding:0!important}
+.leaflet-popup-content{margin:0!important;min-width:210px}
+.leaflet-popup-tip-container{display:none}
+
+.sidebar{width:290px;flex-shrink:0;background:var(--white);border-left:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;z-index:100}
+.sidebar-tabs{display:flex;border-bottom:1px solid var(--border);flex-shrink:0}
+.stab{flex:1;padding:11px 4px;text-align:center;font-size:11px;font-weight:600;color:var(--gray-400);cursor:pointer;border-bottom:2px solid transparent;transition:all .15s}
+.stab.active{color:var(--teal);border-bottom-color:var(--teal)}
+.stab:hover:not(.active){color:var(--gray-600);background:var(--gray-50)}
+.sidebar-body{flex:1;overflow-y:auto;padding:13px;scrollbar-width:thin;scrollbar-color:var(--gray-200) transparent}
+.tab-panel{display:none}.tab-panel.active{display:block}
+
+.stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:14px}
+.stat-card{background:var(--gray-50);border:1px solid var(--border);border-radius:var(--r-md);padding:9px 11px}
+.stat-label{font-size:9px;font-weight:700;color:var(--gray-400);text-transform:uppercase;letter-spacing:.07em;margin-bottom:2px}
+.stat-value{font-size:21px;font-weight:700;color:var(--gray-900);font-variant-numeric:tabular-nums;line-height:1.1}
+.stat-sub{font-size:10px;color:var(--gray-400);margin-top:1px}
+.sh{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--gray-400);margin:13px 0 7px}
+.dur-row{display:flex;align-items:center;gap:7px;margin-bottom:5px}
+.dur-label{font-size:11px;color:var(--gray-600);width:54px;flex-shrink:0}
+.dur-track{flex:1;height:5px;background:var(--gray-100);border-radius:3px;overflow:hidden}
+.dur-fill{height:100%;border-radius:3px;transition:width .5s}
+.dur-count{font-size:11px;color:var(--gray-400);width:18px;text-align:right;font-variant-numeric:tabular-nums}
+.occ-meter{background:var(--gray-100);border-radius:5px;height:7px;overflow:hidden;margin:6px 0 3px}
+.occ-fill{height:100%;border-radius:5px;background:linear-gradient(90deg,var(--teal) 0%,var(--amber) 65%,var(--red) 90%);transition:width .5s}
+.occ-labels{display:flex;justify-content:space-between;font-size:9px;color:var(--gray-400)}
+.live-badge{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--gray-400);margin-bottom:11px}
+.live-dot{width:6px;height:6px;border-radius:50%;background:var(--teal);animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+
+.empty-state{text-align:center;padding:40px 20px;color:var(--gray-400)}
+.empty-state svg{width:40px;height:40px;stroke:var(--gray-200);fill:none;stroke-width:1.5;margin:0 auto 12px;display:block}
+.empty-state p{font-size:12px;line-height:1.6}
+.empty-state strong{color:var(--gray-600)}
+
+.search-bar{display:flex;align-items:center;gap:7px;background:var(--gray-50);border:1px solid var(--border-med);border-radius:var(--r-sm);padding:6px 9px;margin-bottom:9px}
+.search-bar svg{width:13px;height:13px;stroke:var(--gray-400);fill:none;stroke-width:2;flex-shrink:0}
+.search-bar input{border:none;background:transparent;font-size:12px;color:var(--gray-900);flex:1;outline:none;font-family:inherit}
+.search-bar input::placeholder{color:var(--gray-400)}
+.v-list{display:flex;flex-direction:column;gap:5px}
+.v-card{border:1px solid var(--border);border-radius:var(--r-md);padding:9px 11px;cursor:pointer;transition:all .15s;background:var(--white)}
+.v-card:hover{border-color:var(--border-med);background:var(--gray-50)}
+.v-card.selected{border-color:var(--teal);background:var(--teal-light)}
+.v-header{display:flex;align-items:center;gap:6px;margin-bottom:4px}
+.v-color-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;border:1.5px solid rgba(0,0,0,.1)}
+.v-plate{font-size:12px;font-weight:700;font-family:'SF Mono','Fira Code',monospace;letter-spacing:.05em;color:var(--gray-900)}
+.v-type{font-size:11px;color:var(--gray-400);margin-left:auto}
+.badge{font-size:10px;font-weight:700;padding:2px 7px;border-radius:20px}
+.badge-red{background:var(--red-light);color:var(--red)}
+.badge-orange{background:var(--orange-light);color:var(--orange)}
+.badge-teal{background:var(--teal-light);color:var(--teal-dark)}
+.badge-gray{background:var(--gray-100);color:var(--gray-600);border:1px dashed var(--gray-200)}
+.v-meta{display:flex;align-items:center;gap:5px;font-size:10px;color:var(--gray-400);margin-bottom:4px}
+.conf-track{height:3px;background:var(--gray-100);border-radius:2px;overflow:hidden}
+.conf-fill{height:100%;background:var(--teal);border-radius:2px;transition:width .6s}
+
+.street-row{display:flex;align-items:center;padding:6px 0;border-bottom:1px solid var(--border);gap:7px;font-size:12px}
+.street-row:last-child{border-bottom:none}
+.street-name{flex:1;color:var(--gray-900)}
+.occ-pill{font-size:10px;font-weight:700;padding:2px 7px;border-radius:20px;width:48px;text-align:center}
+.occ-hi{background:var(--red-light);color:var(--red)}
+.occ-mid{background:var(--amber-light);color:var(--amber)}
+.occ-lo{background:var(--teal-light);color:var(--teal-dark)}
+
+.map-legend{position:absolute;bottom:28px;left:12px;background:white;border:1px solid var(--border);border-radius:var(--r-md);padding:9px 11px;z-index:500;font-size:11px;box-shadow:var(--shadow-sm)}
+.legend-title{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--gray-400);margin-bottom:6px}
+.leg-row{display:flex;align-items:center;gap:6px;margin-bottom:3px;color:var(--gray-600)}
+.leg-row:last-child{margin-bottom:0}
+.leg-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+
+.tap-hint{position:absolute;bottom:28px;left:50%;transform:translateX(-50%);background:rgba(28,28,26,.85);color:white;font-size:12px;font-weight:500;padding:8px 16px;border-radius:20px;z-index:600;pointer-events:none;white-space:nowrap;transition:opacity .5s}
+.tap-hint.hidden{opacity:0}
+
+.sheet-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:1500;display:none;backdrop-filter:blur(1px)}
+.sheet-backdrop.open{display:block}
+.bottom-sheet{position:fixed;bottom:0;left:0;right:0;background:var(--white);border-radius:18px 18px 0 0;z-index:1600;padding:0 16px 28px;max-height:92vh;overflow-y:auto;transform:translateY(100%);transition:transform .3s cubic-bezier(.32,.72,0,1)}
+.bottom-sheet.open{transform:translateY(0)}
+.sheet-handle{width:36px;height:4px;background:var(--gray-200);border-radius:2px;margin:10px auto 14px}
+.sheet-title{font-size:15px;font-weight:700;margin-bottom:3px;display:flex;align-items:center;gap:8px}
+.sheet-sub{font-size:11px;color:var(--gray-400);margin-bottom:16px}
+
+.type-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px}
+.type-btn{border:1.5px solid var(--border-med);border-radius:var(--r-md);padding:10px 6px 8px;text-align:center;cursor:pointer;transition:all .15s;background:var(--white)}
+.type-btn:hover{border-color:var(--gray-400)}
+.type-btn.selected{border-color:var(--teal);background:var(--teal-light)}
+.type-btn .t-icon{font-size:20px;display:block;margin-bottom:5px;line-height:1}
+.type-btn .t-label{font-size:10px;font-weight:600;color:var(--gray-600);line-height:1.2}
+.type-btn.selected .t-label{color:var(--teal-dark)}
+
+.color-picker{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
+.color-swatch{width:32px;height:32px;border-radius:50%;border:3px solid transparent;cursor:pointer;transition:all .15s;position:relative}
+.color-swatch:hover{transform:scale(1.1)}
+.color-swatch.selected{border-color:var(--gray-900);transform:scale(1.12)}
+.color-swatch.selected::after{content:'✓';position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:white;text-shadow:0 1px 3px rgba(0,0,0,.6)}
+
+.form-group{margin-bottom:11px}
+.form-label{display:block;font-size:10px;font-weight:700;color:var(--gray-600);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px}
+.required-star{color:var(--red);margin-left:2px}
+.form-input{width:100%;padding:8px 10px;border:1px solid var(--border-med);border-radius:var(--r-sm);background:var(--gray-50);color:var(--gray-900);font-size:13px;font-family:inherit;transition:border-color .15s,box-shadow .15s;appearance:auto}
+.form-input:focus{outline:none;border-color:var(--teal);box-shadow:0 0 0 3px rgba(29,158,117,.14);background:var(--white)}
+.form-input.error{border-color:var(--red);box-shadow:0 0 0 3px rgba(201,58,58,.12)}
+.plate-input{font-family:'SF Mono','Fira Code',monospace;letter-spacing:.08em;text-transform:uppercase;font-size:14px}
+.enc-badge{display:inline-flex;align-items:center;gap:4px;background:#E1F5EE;color:#0F6E56;font-size:10px;font-weight:700;padding:3px 8px;border-radius:20px;margin-bottom:8px}
+.enc-badge svg{width:10px;height:10px;fill:none;stroke:currentColor;stroke-width:2.5}
+.lock-row{display:flex;align-items:center;gap:5px;font-size:10px;color:var(--gray-400);margin-top:3px}
+.lock-row svg{width:11px;height:11px;fill:none;stroke:var(--gray-400);stroke-width:2;flex-shrink:0}
+.optional-toggle{font-size:11px;color:var(--teal);cursor:pointer;margin-bottom:10px;display:inline-block;font-weight:600}
+.optional-fields{display:none}
+.optional-fields.open{display:block}
+.btn-submit{width:100%;height:44px;border:none;border-radius:var(--r-sm);background:var(--teal);color:white;font-size:14px;font-weight:700;cursor:pointer;transition:background .15s}
+.btn-submit:hover{background:var(--teal-dark)}
+.btn-submit:disabled{background:var(--gray-200);color:var(--gray-400);cursor:not-allowed}
+.privacy-note{font-size:10px;color:var(--gray-400);text-align:center;margin-top:7px;line-height:1.5}
+
+.nearby-card{background:var(--amber-light);border:1.5px solid var(--amber);border-radius:var(--r-md);padding:12px 14px;margin-bottom:14px}
+.nearby-title{font-size:12px;font-weight:700;color:var(--amber);margin-bottom:8px}
+.nearby-vehicle-info{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.nearby-plate{font-size:15px;font-weight:700;font-family:'SF Mono','Fira Code',monospace;letter-spacing:.06em}
+.nearby-meta{font-size:11px;color:var(--gray-600)}
+.nearby-btns{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+.nearby-btn{height:36px;border-radius:var(--r-sm);font-size:12px;font-weight:700;cursor:pointer;transition:all .15s;border:1.5px solid}
+.nearby-btn.yes{background:var(--teal);border-color:var(--teal);color:white}
+.nearby-btn.yes:hover{background:var(--teal-dark)}
+.nearby-btn.no{background:white;border-color:var(--border-med);color:var(--gray-600)}
+.nearby-btn.no:hover{background:var(--gray-50)}
+
+.modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:2000;display:none;align-items:center;justify-content:center;backdrop-filter:blur(2px)}
+.modal-backdrop.open{display:flex}
+.modal{background:var(--white);border-radius:var(--r-lg);box-shadow:var(--shadow-md);width:360px;max-height:90vh;overflow-y:auto;padding:18px;animation:modalIn .2s ease}
+@keyframes modalIn{from{transform:scale(.97) translateY(6px);opacity:0}to{transform:none;opacity:1}}
+.modal-header{display:flex;align-items:center;gap:9px;margin-bottom:14px}
+.modal-title{font-size:15px;font-weight:700}
+.modal-close{margin-left:auto;width:26px;height:26px;border-radius:var(--r-sm);border:1px solid var(--border-med);background:transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--gray-400);font-size:17px;line-height:1}
+.modal-close:hover{background:var(--gray-50);color:var(--gray-900)}
+.conf-meter-row{display:flex;align-items:center;gap:9px;margin-bottom:12px}
+.conf-meter-track{flex:1;height:7px;background:var(--gray-100);border-radius:4px;overflow:hidden}
+.conf-meter-fill{height:100%;background:var(--teal);border-radius:4px}
+.conf-meter-pct{font-size:13px;font-weight:700;color:var(--teal);width:36px;text-align:right}
+
+.popup-inner{padding:11px 13px}
+.popup-plate{font-size:14px;font-weight:700;font-family:'SF Mono','Fira Code',monospace;letter-spacing:.05em;margin-bottom:4px}
+.popup-row{font-size:11px;color:var(--gray-600);margin-bottom:2px}
+.popup-conf-bar{height:3px;background:var(--gray-100);border-radius:2px;overflow:hidden;margin:7px 0 3px}
+.popup-conf-fill{height:100%;background:var(--teal);border-radius:2px}
+.popup-actions{border-top:1px solid var(--border);padding:7px 13px;display:flex;gap:5px}
+.popup-btn{flex:1;height:28px;border-radius:var(--r-sm);border:1px solid var(--border-med);background:transparent;font-size:11px;font-weight:600;cursor:pointer;color:var(--gray-600);transition:all .15s}
+.popup-btn:hover{background:var(--gray-50)}
+.popup-btn.primary{background:var(--teal);border-color:var(--teal);color:white}
+.popup-btn.primary:hover{background:var(--teal-dark)}
+
+@keyframes ripple{0%{transform:scale(0);opacity:.5}100%{transform:scale(4);opacity:0}}
+.tap-ripple{position:absolute;width:30px;height:30px;border-radius:50%;background:var(--teal);pointer-events:none;transform:scale(0);animation:ripple .5s ease forwards;margin-left:-15px;margin-top:-15px;z-index:450}
+
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--gray-900);color:white;font-size:12px;font-weight:600;padding:9px 18px;border-radius:20px;z-index:3000;opacity:0;transition:all .3s;white-space:nowrap}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* Loading spinner overlay */
+.loading-overlay{position:fixed;inset:0;background:rgba(247,247,245,.85);z-index:4000;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;font-size:13px;color:var(--gray-600)}
+.spinner{width:32px;height:32px;border:3px solid var(--gray-200);border-top-color:var(--teal);border-radius:50%;animation:spin 0.7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading-overlay.hidden{display:none}
+
+/* User location dot — pulsing blue circle on map */
+.user-dot{
+  width:16px;height:16px;
+  background:#2A73E8;
+  border:2.5px solid white;
+  border-radius:50%;
+  box-shadow:0 0 0 0 rgba(42,115,232,.5);
+  animation:locPulse 2.5s infinite;
+}
+@keyframes locPulse{
+  0%  { box-shadow:0 0 0 0   rgba(42,115,232,.45); }
+  70% { box-shadow:0 0 0 10px rgba(42,115,232,0);  }
+  100%{ box-shadow:0 0 0 0   rgba(42,115,232,0);   }
+}
+.btn-icon.locating{ border-color:var(--teal); color:var(--teal); }
+.btn-icon.located { border-color:#2A73E8; color:#2A73E8; background:#EEF3FD; }
+</style>
+</head>
+<body>
+
+<div class="loading-overlay" id="loadingOverlay">
+  <div class="spinner"></div>
+  <span>Loading reports…</span>
+</div>
+
+<div class="topbar">
+  <div class="logo">
+    <div class="logo-icon">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="10" r="3.5"/><path d="M12 2C8.1 2 5 5.1 5 9c0 5.2 7 13 7 13s7-7.8 7-13c0-3.9-3.1-7-7-7z"/></svg>
+    </div>
+    Parking Observatory
+  </div>
+  <div class="filter-group">
+    <button class="filter-btn active" onclick="setFilter('all',this)">All</button>
+    <button class="filter-btn" onclick="setFilter('14',this)">14+ days</button>
+    <button class="filter-btn" onclick="setFilter('90',this)">90+ days</button>
+    <button class="filter-btn" onclick="setFilter('trailer',this)">Trailers</button>
+    <button class="filter-btn" onclick="setFilter('pending',this)">Pending</button>
+  </div>
+  <div class="topbar-right">
+    <button class="btn-icon" id="locateBtn" onclick="locateUser()" title="Go to my location">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/><circle cx="12" cy="12" r="8" stroke-dasharray="2 2"/></svg>
+    </button>
+    <button class="btn-icon" id="heatBtn" onclick="toggleHeat()" title="Toggle heatmap">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
+    </button>
+  </div>
+</div>
+
+<div class="layout">
+  <div id="map"></div>
+
+  <div class="map-legend">
+    <div class="legend-title">Duration</div>
+    <div class="leg-row"><div class="leg-dot" style="background:#C93A3A"></div>90+ days</div>
+    <div class="leg-row"><div class="leg-dot" style="background:#D06A12"></div>14–90 days</div>
+    <div class="leg-row"><div class="leg-dot" style="background:#1D9E75"></div>0–14 days</div>
+    <div class="leg-row"><div class="leg-dot" style="background:#8C8B84;border:1.5px dashed #5A5955;box-sizing:border-box"></div>Pending</div>
+  </div>
+
+  <div class="tap-hint" id="tapHint">👆 Tap the map where a vehicle is parked</div>
+
+  <div class="sidebar">
+    <div class="sidebar-tabs">
+      <div class="stab active" onclick="switchTab('stats',this)">Stats</div>
+      <div class="stab" onclick="switchTab('vehicles',this)">Vehicles</div>
+      <div class="stab" onclick="switchTab('streets',this)">Streets</div>
+    </div>
+    <div class="sidebar-body">
+
+      <div class="tab-panel active" id="tab-stats">
+        <div class="live-badge"><div class="live-dot"></div>Live · Bouchestraße × Karl-Kunger-Str.</div>
+        <div class="stat-grid">
+          <div class="stat-card"><div class="stat-label">Reported</div><div class="stat-value" id="s-total">—</div><div class="stat-sub">vehicles</div></div>
+          <div class="stat-card"><div class="stat-label">Long-term</div><div class="stat-value" id="s-long">—</div><div class="stat-sub">14+ days</div></div>
+          <div class="stat-card"><div class="stat-label">Avg stay</div><div class="stat-value" id="s-avg">—</div><div class="stat-sub">median days</div></div>
+          <div class="stat-card"><div class="stat-label">Trailers</div><div class="stat-value" id="s-trailers">—</div><div class="stat-sub">incl. camper trailers</div></div>
+        </div>
+        <div class="sh">Poisonous occupancy estimate</div>
+        <div style="font-size:26px;font-weight:700;font-variant-numeric:tabular-nums" id="s-occ">—</div>
+        <div style="font-size:11px;color:var(--gray-400);margin-bottom:5px" id="s-occ-sub">of ~90 spaces</div>
+        <div class="occ-meter"><div class="occ-fill" id="occ-fill" style="width:0%"></div></div>
+        <div class="occ-labels"><span>0%</span><span>50%</span><span>100%</span></div>
+        <div class="sh">By duration</div>
+        <div class="dur-row"><div class="dur-label">0–14 d</div><div class="dur-track"><div class="dur-fill" id="d0" style="background:#1D9E75;width:0%"></div></div><div class="dur-count" id="dc0">0</div></div>
+        <div class="dur-row"><div class="dur-label">14–90 d</div><div class="dur-track"><div class="dur-fill" id="d1" style="background:#D06A12;width:0%"></div></div><div class="dur-count" id="dc1">0</div></div>
+        <div class="dur-row"><div class="dur-label">90+ days</div><div class="dur-track"><div class="dur-fill" id="d2" style="background:#C93A3A;width:0%"></div></div><div class="dur-count" id="dc2">0</div></div>
+        <div class="sh">Confidence</div>
+        <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--gray-600);padding:4px 0;border-bottom:1px solid var(--border)"><span>Verified (≥3 confirms)</span><span id="s-verified" style="font-weight:700">—</span></div>
+        <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--gray-600);padding:4px 0"><span>Pending (1–2 confirms)</span><span id="s-pending" style="font-weight:700">—</span></div>
+      </div>
+
+      <div class="tab-panel" id="tab-vehicles">
+        <div class="search-bar">
+          <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input type="text" placeholder="Search plate, street, type…" oninput="filterList(this.value)" id="vsearch">
+        </div>
+        <div class="v-list" id="v-list"></div>
+      </div>
+
+      <div class="tab-panel" id="tab-streets">
+        <div class="sh" style="margin-top:0">Street occupancy</div>
+        <div id="street-list"></div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- BOTTOM SHEET -->
+<div class="sheet-backdrop" id="sheetBackdrop" onclick="closeSheet()"></div>
+<div class="bottom-sheet" id="bottomSheet">
+  <div class="sheet-handle"></div>
+  <div class="sheet-title"><span id="sheet-icon">📍</span><span id="sheet-title-text">Report a vehicle</span></div>
+  <div class="sheet-sub" id="sheet-sub">Select type and color, then enter the plate.</div>
+
+  <div class="nearby-card" id="nearbyCard" style="display:none">
+    <div class="nearby-title">⚠ Nearby vehicle found — is this the same one?</div>
+    <div class="nearby-vehicle-info">
+      <div class="v-color-dot" id="nc-dot" style="width:12px;height:12px;border:2px solid rgba(0,0,0,.1)"></div>
+      <div>
+        <div class="nearby-plate" id="nc-plate">—</div>
+        <div class="nearby-meta" id="nc-meta">—</div>
+      </div>
+      <div style="margin-left:auto;text-align:right">
+        <div id="nc-days" style="font-size:13px;font-weight:700;color:var(--amber)">—</div>
+        <div style="font-size:10px;color:var(--gray-400)" id="nc-dist">—</div>
+      </div>
+    </div>
+    <div class="nearby-btns">
+      <button class="nearby-btn yes" id="nearbyYes">✓ Yes, same vehicle</button>
+      <button class="nearby-btn no" id="nearbyNo">✗ No, different</button>
+    </div>
+  </div>
+
+  <div id="newReportForm">
+    <div class="form-label" style="margin-bottom:7px">Vehicle type</div>
+    <div class="type-grid" id="typeGrid"></div>
+
+    <div class="form-label" style="margin-bottom:7px">Color</div>
+    <div class="color-picker">
+      <div class="color-swatch selected" data-color="#D5D3CC" data-name="Silver" style="background:#D5D3CC" onclick="selectColor(this)" title="Silver"></div>
+      <div class="color-swatch" data-color="#2A2A28" data-name="Black" style="background:#2A2A28" onclick="selectColor(this)" title="Black"></div>
+      <div class="color-swatch" data-color="#F0EFEB" data-name="White" style="background:#F0EFEB;border-color:var(--gray-200)" onclick="selectColor(this)" title="White"></div>
+      <div class="color-swatch" data-color="#C93A3A" data-name="Red" style="background:#C93A3A" onclick="selectColor(this)" title="Red"></div>
+      <div class="color-swatch" data-color="#2A5EA8" data-name="Blue" style="background:#2A5EA8" onclick="selectColor(this)" title="Blue"></div>
+      <div class="color-swatch" data-color="#5A5955" data-name="Gray" style="background:#5A5955" onclick="selectColor(this)" title="Gray"></div>
+      <div class="color-swatch" data-color="#2E7D4F" data-name="Green" style="background:#2E7D4F" onclick="selectColor(this)" title="Green"></div>
+      <div class="color-swatch" data-color="#BA7517" data-name="Yellow/Beige" style="background:#BA7517" onclick="selectColor(this)" title="Yellow/Beige"></div>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">License plate<span class="required-star">*</span></label>
+      <div class="enc-badge">
+        <svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        AES-256 encrypted — never stored in plain text
+      </div>
+      <input class="form-input plate-input" id="inp-plate" maxlength="12" placeholder="B AB 1234" oninput="this.value=this.value.toUpperCase();clearPlateError()" required>
+      <div class="lock-row">
+        <svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        Public shows partial plate only. Full plate visible to moderators only.
+      </div>
+      <div id="plate-error" style="font-size:11px;color:var(--red);margin-top:3px;display:none">License plate is required.</div>
+    </div>
+
+    <span class="optional-toggle" onclick="toggleOptional()">+ Optional details</span>
+    <div class="optional-fields" id="optFields">
+      <div class="form-group">
+        <label class="form-label">Notes</label>
+        <textarea class="form-input" id="inp-notes" rows="2" style="resize:none" placeholder="Flat tires, no movement, missing plates…"></textarea>
+      </div>
+    </div>
+
+    <button class="btn-submit" id="submitBtn" onclick="submitReport()">Submit report</button>
+    <div class="privacy-note">Your identity is never shared. Plate encrypted at rest. Location stored at ~10 m precision. GDPR compliant.</div>
+  </div>
+</div>
+
+<!-- CONFIRM MODAL -->
+<div class="modal-backdrop" id="confirmModal" onclick="if(event.target===this)closeConfirm()">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <div style="width:30px;height:30px;background:var(--teal-light);border-radius:7px;display:flex;align-items:center;justify-content:center">
+        <svg viewBox="0 0 24 24" style="width:15px;height:15px;fill:none;stroke:var(--teal);stroke-width:2.2"><path d="M20 6L9 17l-5-5"/></svg>
+      </div>
+      <div class="modal-title">Confirm sighting</div>
+      <button class="modal-close" onclick="closeConfirm()">×</button>
+    </div>
+    <div id="confirm-content"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ── CONFIG ────────────────────────────────────────────────────────────────
+const CENTER       = [52.4775, 13.4558]; // Bouchestraße × Karl-Kunger-Str.
+const ZOOM         = 17;
+const MERGE_RADIUS = 15;  // metres — prompt user to confirm same vehicle
+const AUTO_MERGE   = 5;   // metres — silently add confirmation
+
+// Anonymous session token — persists in localStorage so one tab = one reporter
+const SESSION_ID = (() => {
+  let id = localStorage.getItem('obs_session');
+  if (!id) { id = Math.random().toString(36).slice(2); localStorage.setItem('obs_session', id); }
+  return id;
+})();
+
+const STREETS = {
+  'Bouchestraße':      { capacity: 28, lat: 52.4775, lng: 13.4543 },
+  'Karl-Kunger-Str.':  { capacity: 22, lat: 52.4763, lng: 13.4568 },
+  'Kiefholzstraße':    { capacity: 18, lat: 52.4752, lng: 13.4585 },
+  'Heidelberger Str.': { capacity: 20, lat: 52.4790, lng: 13.4528 },
+  'Lohmühlenstraße':   { capacity: 16, lat: 52.4748, lng: 13.4540 },
+  'Heidekampweg':      { capacity: 14, lat: 52.4795, lng: 13.4560 },
+};
+
+const TYPES = [
+  { key:'Passenger car',    emoji:'🚗', label:'Car' },
+  { key:'Van / Camper Van', emoji:'🚐', label:'Van / Camper Van' },
+  { key:'Truck',            emoji:'🚛', label:'Truck' },
+  { key:'Trailer',          svgIcon:true, label:'Trailer' },
+  { key:'Camper trailer',   svgIcon:true, label:'Camper trailer' },
+  { key:'Motorcycle',       emoji:'🏍',  label:'Motorcycle' },
+  { key:'Unknown',          emoji:'❓', label:'Unknown' },
+];
+
+const TYPE_SVG = {
+  'Trailer': `<svg viewBox="0 0 36 20" width="32" height="18" fill="none" xmlns="http://www.w3.org/2000/svg" style="display:block;margin:0 auto 4px">
+    <line x1="0" y1="10" x2="6" y2="10" stroke="#5A5955" stroke-width="2" stroke-linecap="round"/>
+    <rect x="6" y="3" width="26" height="12" rx="2" fill="#D5D3CC" stroke="#5A5955" stroke-width="1.5"/>
+    <line x1="29" y1="3" x2="29" y2="15" stroke="#5A5955" stroke-width="1"/>
+    <circle cx="13" cy="17" r="3" fill="#2A2A28" stroke="#5A5955" stroke-width="1"/>
+    <circle cx="24" cy="17" r="3" fill="#2A2A28" stroke="#5A5955" stroke-width="1"/>
+  </svg>`,
+  'Camper trailer': `<svg viewBox="0 0 40 22" width="36" height="20" fill="none" xmlns="http://www.w3.org/2000/svg" style="display:block;margin:0 auto 4px">
+    <rect x="0" y="8" width="12" height="8" rx="2" fill="#2A5EA8" stroke="#1a3f7a" stroke-width="1"/>
+    <rect x="2" y="5" width="8" height="5" rx="1" fill="#2A5EA8" stroke="#1a3f7a" stroke-width="1"/>
+    <circle cx="3" cy="17" r="2.5" fill="#2A2A28"/>
+    <circle cx="10" cy="17" r="2.5" fill="#2A2A28"/>
+    <line x1="12" y1="12" x2="15" y2="12" stroke="#5A5955" stroke-width="1.5"/>
+    <rect x="15" y="5" width="23" height="11" rx="2" fill="#F0EFEB" stroke="#8C8B84" stroke-width="1.5"/>
+    <rect x="15" y="3" width="23" height="4" rx="2" fill="#D5D3CC" stroke="#8C8B84" stroke-width="1"/>
+    <rect x="19" y="7" width="5" height="4" rx="1" fill="#9AC8E8" stroke="#8C8B84" stroke-width=".8"/>
+    <rect x="27" y="7" width="5" height="4" rx="1" fill="#9AC8E8" stroke="#8C8B84" stroke-width=".8"/>
+    <circle cx="22" cy="18" r="2.5" fill="#2A2A28" stroke="#5A5955" stroke-width=".8"/>
+    <circle cx="32" cy="18" r="2.5" fill="#2A2A28" stroke="#5A5955" stroke-width=".8"/>
+  </svg>`,
+};
+
+// ── STATE ──────────────────────────────────────────────────────────────────
+let map, markers = {}, heatCircles = [], heatOn = false;
+let vehicles = [];   // populated from API
+let activeFilter = 'all', selectedId = null;
+let tapLat = null, tapLng = null;
+let selectedType = 'Passenger car', selectedColor = '#D5D3CC', selectedColorName = 'Silver';
+
+// ── API ────────────────────────────────────────────────────────────────────
+async function api(method, path, body) {
+  const opts = { method, headers: { 'Content-Type': 'application/json' } };
+  if (body) opts.body = JSON.stringify(body);
+  const res = await fetch(path, opts);
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ error: res.statusText }));
+    throw new Error(err.error || res.statusText);
+  }
+  return res.json();
+}
+
+async function loadVehicles() {
+  try {
+    vehicles = await api('GET', `/api/vehicles?filter=${activeFilter}`);
+    renderMarkers();
+    renderList(document.getElementById('vsearch').value);
+    renderStreets();
+    if (heatOn) drawHeat();
+  } catch(e) {
+    showToast('Could not load reports: ' + e.message);
+  }
+}
+
+async function loadStats() {
+  try {
+    const s = await api('GET', '/api/stats');
+    const occ = Math.min(100, Math.round(s.total / 90 * 100));
+    document.getElementById('s-total').textContent    = s.total;
+    document.getElementById('s-long').textContent     = s.longTerm;
+    document.getElementById('s-avg').textContent      = s.avg + 'd';
+    document.getElementById('s-trailers').textContent = s.trailers;
+    document.getElementById('s-occ').textContent      = occ + '%';
+    document.getElementById('s-occ-sub').textContent  = `of ~90 spaces (${s.total} reported)`;
+    document.getElementById('occ-fill').style.width   = occ + '%';
+    document.getElementById('s-verified').textContent = s.verified;
+    document.getElementById('s-pending').textContent  = s.pending;
+    const bmax = Math.max(s.byDuration.d0_14, s.byDuration.d14_90, s.byDuration.d90plus, 1);
+    document.getElementById('d0').style.width  = Math.round(s.byDuration.d0_14  / bmax * 100) + '%';
+    document.getElementById('d1').style.width  = Math.round(s.byDuration.d14_90 / bmax * 100) + '%';
+    document.getElementById('d2').style.width  = Math.round(s.byDuration.d90plus/ bmax * 100) + '%';
+    document.getElementById('dc0').textContent = s.byDuration.d0_14;
+    document.getElementById('dc1').textContent = s.byDuration.d14_90;
+    document.getElementById('dc2').textContent = s.byDuration.d90plus;
+  } catch(e) { console.error('Stats error:', e); }
+}
+
+// ── MAP ────────────────────────────────────────────────────────────────────
+let userMarker = null; // Leaflet marker for the user's position
+
+function initMap() {
+  // Always start at the neighbourhood default so the map is immediately usable
+  map = L.map('map', { center: CENTER, zoom: ZOOM, zoomControl: true });
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '© <a href="https://openstreetmap.org/copyright">OpenStreetMap</a>',
+    maxZoom: 19,
+  }).addTo(map);
+
+  // Neighbourhood anchor marker
+  L.circleMarker(CENTER, { radius:7, color:'#1D9E75', fillColor:'#1D9E75', fillOpacity:.3, weight:2 })
+    .addTo(map)
+    .bindPopup('<b>Bouchestraße × Karl-Kunger-Str.</b><br>Pilot zone · 12435 Berlin');
+
+  // Pilot boundary polygon
+  const poly = [[52.4810,13.4505],[52.4810,13.4610],[52.4730,13.4610],[52.4730,13.4505]];
+  L.polygon(poly, { color:'#1D9E75', weight:2, fillOpacity:.03, dashArray:'6 4' }).addTo(map);
+
+  map.on('click', onMapClick);
+  setTimeout(() => document.getElementById('tapHint').classList.add('hidden'), 7000);
+
+  // Request location immediately — pan to user if granted, stay at default if denied
+  requestUserLocation(true);
+}
+
+/**
+ * Request the browser's Geolocation API.
+ * @param {boolean} onInit  — true on first load (silent if denied),
+ *                            false when user taps the locate button (show feedback).
+ */
+function requestUserLocation(onInit = false) {
+  if (!navigator.geolocation) {
+    if (!onInit) showToast('Geolocation is not supported by your browser.');
+    return;
+  }
+
+  const btn = document.getElementById('locateBtn');
+  btn.classList.add('locating');
+
+  navigator.geolocation.getCurrentPosition(
+    // ── SUCCESS ──────────────────────────────────────────────────────────────
+    (pos) => {
+      const { latitude: lat, longitude: lng, accuracy } = pos.coords;
+
+      btn.classList.remove('locating');
+      btn.classList.add('located');
+      btn.title = `Your location (±${Math.round(accuracy)} m)`;
+
+      // Pan and zoom to the user's position
+      map.setView([lat, lng], 17, { animate: true });
+
+      // Place or update the pulsing blue dot
+      if (userMarker) {
+        userMarker.setLatLng([lat, lng]);
+      } else {
+        const icon = L.divIcon({
+          html: '<div class="user-dot"></div>',
+          className: '',
+          iconSize: [16, 16],
+          iconAnchor: [8, 8],
+        });
+        userMarker = L.marker([lat, lng], { icon, zIndexOffset: 1000 })
+          .addTo(map)
+          .bindPopup(`<b>You are here</b><br>Accuracy: ±${Math.round(accuracy)} m`);
+      }
+
+      if (!onInit) showToast('Map centred on your location');
+    },
+
+    // ── DENIED / ERROR ────────────────────────────────────────────────────────
+    (err) => {
+      btn.classList.remove('locating');
+
+      // On first load, stay silently at the default — don't alarm the user
+      if (onInit) return;
+
+      // Only show a message if the user explicitly tapped the button
+      const messages = {
+        1: 'Location access was denied. Enable it in your browser settings.',
+        2: 'Your location could not be determined right now.',
+        3: 'Location request timed out — try again.',
+      };
+      showToast(messages[err.code] || 'Location unavailable.');
+    },
+
+    // Options: high accuracy for mobile GPS, 10-second timeout
+    { enableHighAccuracy: true, timeout: 10000, maximumAge: 30000 }
+  );
+}
+
+/** Called when the user taps the locate button in the topbar */
+function locateUser() {
+  requestUserLocation(false);
+}
+
+async function onMapClick(e) {
+  document.getElementById('tapHint').classList.add('hidden');
+
+  // Ripple effect
+  const pt = map.latLngToContainerPoint(e.latlng);
+  const r = document.createElement('div');
+  r.className = 'tap-ripple';
+  r.style.left = pt.x + 'px'; r.style.top = pt.y + 'px';
+  document.getElementById('map').appendChild(r);
+  setTimeout(() => r.remove(), 600);
+
+  tapLat = e.latlng.lat; tapLng = e.latlng.lng;
+
+  // Check server for nearby vehicles
+  try {
+    const nearby = await api('GET', `/api/vehicles/nearby?lat=${tapLat}&lng=${tapLng}&radius=${MERGE_RADIUS}`);
+    if (nearby.length > 0) {
+      const closest = nearby[0];
+      if (closest.dist <= AUTO_MERGE) {
+        await confirmVehicle(closest.id, true);
+        showToast('Sighting auto-confirmed — same location');
+        return;
+      }
+      showNearbySheet(closest);
+    } else {
+      showNewReportSheet();
+    }
+  } catch(err) {
+    showToast('Connection error — try again');
+  }
+}
+
+function pinColor(v) {
+  if (v.status === 'pending') return '#8C8B84';
+  if (v.days >= 90) return '#C93A3A';
+  if (v.days >= 14) return '#D06A12';
+  return '#1D9E75';
+}
+
+function makeIcon(v) {
+  const col = pinColor(v);
+  const isSquare = ['Trailer','Camper trailer'].includes(v.type);
+  const isPend = v.status === 'pending';
+  const sel = selectedId === v.id;
+  const sz = sel ? 22 : 16;
+  const sw = isPend ? '1.5' : '1';
+  const dash = isPend ? 'stroke-dasharray="3 2"' : '';
+  const sc = isPend ? '#5A5955' : 'white';
+  const fo = isPend ? .55 : .9;
+  const shape = isSquare
+    ? `<rect x="1" y="1" width="${sz-2}" height="${sz-2}" rx="3" fill="${col}" fill-opacity="${fo}" stroke="${sc}" stroke-width="${sw}" ${dash}/>`
+    : `<circle cx="${sz/2}" cy="${sz/2}" r="${sz/2-1.5}" fill="${col}" fill-opacity="${fo}" stroke="${sc}" stroke-width="${sw}" ${dash}/>`;
+  const svg = `<svg width="${sz}" height="${sz}" viewBox="0 0 ${sz} ${sz}" xmlns="http://www.w3.org/2000/svg">${shape}</svg>`;
+  return L.divIcon({ html: svg, className: '', iconSize: [sz,sz], iconAnchor: [sz/2,sz/2] });
+}
+
+function renderMarkers() {
+  Object.values(markers).forEach(m => map.removeLayer(m));
+  markers = {};
+  vehicles.forEach(v => {
+    const m = L.marker([v.lat, v.lng], { icon: makeIcon(v) }).addTo(map);
+    m.bindPopup(popupHTML(v), { maxWidth: 260, minWidth: 210 });
+    m.on('click', () => selectVehicle(v.id));
+    markers[v.id] = m;
+  });
+}
+
+function popupHTML(v) {
+  const db = v.days >= 90
+    ? `<span style="background:var(--red-light);color:var(--red);padding:2px 6px;border-radius:10px;font-size:10px;font-weight:700">${v.days}d</span>`
+    : v.days >= 14
+    ? `<span style="background:var(--orange-light);color:var(--orange);padding:2px 6px;border-radius:10px;font-size:10px;font-weight:700">${v.days}d</span>`
+    : `<span style="background:var(--teal-light);color:var(--teal-dark);padding:2px 6px;border-radius:10px;font-size:10px;font-weight:700">${v.days}d</span>`;
+  return `<div class="popup-inner">
+    <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px">
+      <div style="width:8px;height:8px;border-radius:50%;background:${v.color};flex-shrink:0;border:1px solid rgba(0,0,0,.12)"></div>
+      <div class="popup-plate">${v.plateHint || '— — —'}</div>${db}
+    </div>
+    <div class="popup-row">${v.type} · ${v.colorName}</div>
+    <div class="popup-row">📍 ${v.street || ''}</div>
+    ${v.notes ? `<div class="popup-row" style="margin-top:3px;font-style:italic;color:var(--gray-400)">"${v.notes}"</div>` : ''}
+    <div class="popup-conf-bar"><div class="popup-conf-fill" style="width:${v.confidence}%"></div></div>
+    <div style="display:flex;justify-content:space-between;align-items:center">
+      <span style="font-size:10px;color:var(--gray-400)">${v.confidence}% · ${v.confirmations} confirms</span>
+      <span style="font-size:10px;padding:2px 6px;border-radius:10px;${v.status==='pending'?'background:var(--gray-100);color:var(--gray-600)':'background:var(--teal-light);color:var(--teal-dark)'};font-weight:600">${v.status==='pending'?'Pending':'Verified'}</span>
+    </div>
+  </div>
+  <div class="popup-actions">
+    <button class="popup-btn primary" onclick="openConfirmModal(${v.id})">✓ Confirm sighting</button>
+    <button class="popup-btn" onclick="showToast('Flagged for moderator review.')">⚑ Flag</button>
+  </div>`;
+}
+
+// ── HEATMAP ────────────────────────────────────────────────────────────────
+function toggleHeat() {
+  heatOn = !heatOn;
+  document.getElementById('heatBtn').classList.toggle('active-heat', heatOn);
+  heatOn ? drawHeat() : (heatCircles.forEach(c => map.removeLayer(c)), heatCircles = []);
+}
+function drawHeat() {
+  heatCircles.forEach(c => map.removeLayer(c)); heatCircles = [];
+  const cnt = {};
+  vehicles.forEach(v => { cnt[v.street] = (cnt[v.street] || 0) + 1; });
+  const mx = Math.max(...Object.values(cnt), 1);
+  Object.entries(STREETS).forEach(([name, s]) => {
+    const n = cnt[name] || 0; if (!n) return;
+    const i = n / mx;
+    const col = i > .7 ? '#C93A3A' : i > .4 ? '#BA7517' : '#1D9E75';
+    const c = L.circle([s.lat, s.lng], { radius: 70+i*90, color:'transparent', fillColor:col, fillOpacity:.15+i*.22 }).addTo(map);
+    heatCircles.push(c);
+  });
+}
+
+// ── BOTTOM SHEET ───────────────────────────────────────────────────────────
+function showNearbySheet(v) {
+  document.getElementById('nearbyCard').style.display = 'block';
+  document.getElementById('newReportForm').style.display = 'none';
+  document.getElementById('sheet-title-text').textContent = 'Vehicle found nearby';
+  document.getElementById('sheet-sub').textContent = `A report exists ${v.dist} m from your tap.`;
+  document.getElementById('nc-dot').style.background = v.color;
+  document.getElementById('nc-plate').textContent = v.plateHint || '—';
+  document.getElementById('nc-meta').textContent = v.type + ' · ' + v.colorName + (v.street ? ' · ' + v.street : '');
+  document.getElementById('nc-days').textContent = v.days + 'd parked';
+  document.getElementById('nc-dist').textContent = v.dist + ' m away';
+  document.getElementById('nearbyYes').onclick = async () => { await confirmVehicle(v.id); closeSheet(); };
+  document.getElementById('nearbyNo').onclick  = () => { showNewReportSheet(); };
+  openSheet();
+}
+
+function showNewReportSheet() {
+  document.getElementById('nearbyCard').style.display = 'none';
+  document.getElementById('newReportForm').style.display = 'block';
+  document.getElementById('sheet-title-text').textContent = 'Report a vehicle';
+  document.getElementById('sheet-sub').textContent = 'Select type and color, then enter the plate.';
+  document.querySelectorAll('.type-btn').forEach(b => b.classList.remove('selected'));
+  document.querySelector('[data-type="Passenger car"]').classList.add('selected');
+  selectedType = 'Passenger car';
+  document.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('selected'));
+  document.querySelector('[data-color="#D5D3CC"]').classList.add('selected');
+  selectedColor = '#D5D3CC'; selectedColorName = 'Silver';
+  document.getElementById('inp-plate').value = '';
+  document.getElementById('inp-plate').classList.remove('error');
+  document.getElementById('plate-error').style.display = 'none';
+  if (document.getElementById('inp-notes')) document.getElementById('inp-notes').value = '';
+  document.getElementById('optFields').classList.remove('open');
+  document.querySelector('.optional-toggle').textContent = '+ Optional details';
+  openSheet();
+}
+
+function openSheet() {
+  document.getElementById('sheetBackdrop').classList.add('open');
+  document.getElementById('bottomSheet').classList.add('open');
+}
+function closeSheet() {
+  document.getElementById('sheetBackdrop').classList.remove('open');
+  document.getElementById('bottomSheet').classList.remove('open');
+}
+
+function selectType(el) {
+  document.querySelectorAll('.type-btn').forEach(b => b.classList.remove('selected'));
+  el.classList.add('selected'); selectedType = el.dataset.type;
+}
+function selectColor(el) {
+  document.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('selected'));
+  el.classList.add('selected'); selectedColor = el.dataset.color; selectedColorName = el.dataset.name;
+}
+function toggleOptional() {
+  const f = document.getElementById('optFields');
+  f.classList.toggle('open');
+  document.querySelector('.optional-toggle').textContent = f.classList.contains('open') ? '− Hide details' : '+ Optional details';
+}
+function clearPlateError() {
+  document.getElementById('inp-plate').classList.remove('error');
+  document.getElementById('plate-error').style.display = 'none';
+}
+
+async function submitReport() {
+  if (!tapLat || !tapLng) { showToast('Tap the map first'); return; }
+  const plate = document.getElementById('inp-plate').value.trim();
+  if (!plate) {
+    document.getElementById('inp-plate').classList.add('error');
+    document.getElementById('plate-error').style.display = 'block';
+    document.getElementById('inp-plate').focus();
+    return;
+  }
+
+  // Nearest street by Haversine
+  let street = 'Bouchestraße', minD = 99999;
+  Object.entries(STREETS).forEach(([name, s]) => {
+    const d = haversine(tapLat, tapLng, s.lat, s.lng);
+    if (d < minD) { minD = d; street = name; }
+  });
+
+  const notes = document.getElementById('inp-notes') ? document.getElementById('inp-notes').value.trim() : '';
+
+  const btn = document.getElementById('submitBtn');
+  btn.disabled = true; btn.textContent = 'Submitting…';
+
+  try {
+    const v = await api('POST', '/api/vehicles', {
+      lat: tapLat, lng: tapLng,
+      type: selectedType, color: selectedColor, colorName: selectedColorName,
+      plate, street, notes, sessionId: SESSION_ID,
+    });
+    vehicles.push(v);
+    closeSheet();
+    renderMarkers(); renderList(); renderStreets(); loadStats();
+    switchTab('vehicles', document.querySelectorAll('.stab')[1]);
+    setTimeout(() => selectVehicle(v.id), 200);
+    showToast('Report submitted — pending community confirmation');
+  } catch(e) {
+    showToast('Error: ' + e.message);
+  } finally {
+    btn.disabled = false; btn.textContent = 'Submit report';
+  }
+}
+
+// ── CONFIRM ────────────────────────────────────────────────────────────────
+async function confirmVehicle(id, silent = false) {
+  try {
+    const updated = await api('POST', `/api/vehicles/${id}/confirm`, {
+      lat: tapLat, lng: tapLng, sessionId: SESSION_ID,
+    });
+    const idx = vehicles.findIndex(v => v.id === id);
+    if (idx !== -1) vehicles[idx] = updated;
+    renderMarkers(); renderList(); loadStats();
+    if (!silent) showToast('Sighting confirmed — thank you!');
+  } catch(e) {
+    showToast('Error: ' + e.message);
+  }
+}
+
+function openConfirmModal(id) {
+  const v = vehicles.find(x => x.id === id); if (!v) return;
+  document.getElementById('confirm-content').innerHTML = `
+    <div style="background:var(--teal-light);border-radius:var(--r-md);padding:12px 14px;margin-bottom:12px;display:flex;gap:10px;align-items:center">
+      <div style="width:10px;height:10px;border-radius:50%;background:${v.color};flex-shrink:0;border:1.5px solid rgba(0,0,0,.12)"></div>
+      <div>
+        <div style="font-size:15px;font-weight:700;font-family:monospace;letter-spacing:.06em">${v.plateHint || '—'}</div>
+        <div style="font-size:11px;color:var(--gray-600);margin-top:2px">${v.type} · ${v.colorName}${v.street?' · '+v.street:''}</div>
+        <div style="font-size:11px;color:var(--gray-400);margin-top:1px">${v.days} days parked · ${v.confirmations} confirmations</div>
+      </div>
+    </div>
+    <div class="sh" style="margin-top:0">Confidence</div>
+    <div class="conf-meter-row">
+      <div class="conf-meter-track"><div class="conf-meter-fill" style="width:${v.confidence}%"></div></div>
+      <div class="conf-meter-pct">${v.confidence}%</div>
+    </div>
+    <div style="font-size:11px;color:var(--gray-400);margin-bottom:14px">Your confirmation raises this score and refines the pin location.</div>
+    <button class="btn-submit" onclick="confirmFromModal(${v.id})">✓ I saw this vehicle today</button>
+    <button style="width:100%;height:36px;border:1px solid var(--border-med);background:transparent;border-radius:var(--r-sm);font-size:12px;font-weight:600;color:var(--red);cursor:pointer;margin-top:7px" onclick="closeConfirm();showToast('Flagged for moderator review.')">⚑ Report as incorrect</button>
+  `;
+  document.getElementById('confirmModal').classList.add('open');
+}
+
+async function confirmFromModal(id) {
+  tapLat = null; tapLng = null;
+  await confirmVehicle(id);
+  closeConfirm();
+}
+function closeConfirm() { document.getElementById('confirmModal').classList.remove('open'); }
+
+// ── FILTER / SELECT / TABS ─────────────────────────────────────────────────
+async function setFilter(f, btn) {
+  activeFilter = f;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  await loadVehicles();
+}
+
+function selectVehicle(id) {
+  selectedId = selectedId === id ? null : id;
+  renderMarkers();
+  renderList(document.getElementById('vsearch').value);
+  if (selectedId) {
+    const v = vehicles.find(x => x.id === id);
+    if (v && markers[id]) { map.setView([v.lat, v.lng], 17, { animate: true }); setTimeout(() => markers[id].openPopup(), 350); }
+    const card = document.getElementById('vc-' + id);
+    if (card) card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+}
+
+function switchTab(id, el) {
+  document.querySelectorAll('.stab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('tab-' + id).classList.add('active');
+}
+
+// ── VEHICLE LIST ────────────────────────────────────────────────────────────
+function renderList(q = '') {
+  const el = document.getElementById('v-list');
+  let vv = [...vehicles];
+  if (q) {
+    const ql = q.toLowerCase();
+    vv = vv.filter(v =>
+      (v.plateHint||'').toLowerCase().includes(ql) ||
+      v.type.toLowerCase().includes(ql) ||
+      (v.street||'').toLowerCase().includes(ql) ||
+      v.colorName.toLowerCase().includes(ql)
+    );
+  }
+  vv.sort((a, b) => b.days - a.days);
+
+  if (!vv.length) {
+    el.innerHTML = `<div class="empty-state">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="10" r="4"/><path d="M12 2C8.1 2 5 5.1 5 9c0 5.2 7 13 7 13s7-7.8 7-13c0-3.9-3.1-7-7-7z"/></svg>
+      <p><strong>No vehicles reported yet.</strong><br>Tap anywhere on the map where a vehicle is parked to submit the first report.</p>
+    </div>`;
+    return;
+  }
+
+  el.innerHTML = vv.map(v => {
+    let badge = '';
+    if (v.status === 'pending')  badge = `<span class="badge badge-gray">Pending</span>`;
+    else if (v.days >= 90)       badge = `<span class="badge badge-red">${v.days}d</span>`;
+    else if (v.days >= 14)       badge = `<span class="badge badge-orange">${v.days}d</span>`;
+    else                         badge = `<span class="badge badge-teal">${v.days}d</span>`;
+    return `<div class="v-card${selectedId===v.id?' selected':''}" onclick="selectVehicle(${v.id})" id="vc-${v.id}">
+      <div class="v-header">
+        <div class="v-color-dot" style="background:${v.color}"></div>
+        <div class="v-plate">${v.plateHint || '—'}</div>${badge}
+        <div class="v-type">${v.type}</div>
+      </div>
+      <div class="v-meta"><span>${v.street||''}</span><span style="color:var(--gray-200)">·</span><span>${v.confirmations} confirm${v.confirmations===1?'':'s'}</span></div>
+      <div class="conf-track"><div class="conf-fill" style="width:${v.confidence}%"></div></div>
+    </div>`;
+  }).join('');
+}
+function filterList(q) { renderList(q); }
+
+// ── STREETS ─────────────────────────────────────────────────────────────────
+function renderStreets() {
+  const cnt = {};
+  vehicles.forEach(v => { cnt[v.street] = (cnt[v.street] || 0) + 1; });
+  const rows = Object.entries(STREETS)
+    .map(([name, s]) => ({ name, count: cnt[name] || 0, cap: s.capacity }))
+    .sort((a, b) => b.count - a.count);
+
+  const el = document.getElementById('street-list');
+  if (!rows.some(r => r.count > 0)) {
+    el.innerHTML = `<div style="font-size:12px;color:var(--gray-400);padding:12px 0">No reports yet on any street.</div>`;
+    return;
+  }
+  el.innerHTML = rows.map(r => {
+    const pct = Math.round(r.count / r.cap * 100);
+    const cls = pct >= 70 ? 'occ-hi' : pct >= 40 ? 'occ-mid' : 'occ-lo';
+    return `<div class="street-row"><div class="street-name">${r.name}</div><div style="font-size:11px;color:var(--gray-400);width:18px;text-align:right">${r.count}</div><div class="occ-pill ${cls}">${pct}%</div></div>`;
+  }).join('');
+}
+
+// ── UTILS ──────────────────────────────────────────────────────────────────
+function haversine(la1, ln1, la2, ln2) {
+  const R = 6371000, dL = (la2-la1)*Math.PI/180, dl = (ln2-ln1)*Math.PI/180;
+  const a = Math.sin(dL/2)**2 + Math.cos(la1*Math.PI/180)*Math.cos(la2*Math.PI/180)*Math.sin(dl/2)**2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+// ── TYPE GRID BUILD ─────────────────────────────────────────────────────────
+function buildTypeGrid() {
+  document.getElementById('typeGrid').innerHTML = TYPES.map(t => `
+    <div class="type-btn${t.key===selectedType?' selected':''}" data-type="${t.key}" onclick="selectType(this)">
+      ${TYPE_SVG[t.key] ? TYPE_SVG[t.key] : `<span class="t-icon">${t.emoji}</span>`}
+      <span class="t-label">${t.label}</span>
+    </div>`).join('');
+}
+
+// ── INIT ──────────────────────────────────────────────────────────────────
+async function init() {
+  buildTypeGrid();
+  initMap();
+  await Promise.all([loadVehicles(), loadStats()]);
+  document.getElementById('loadingOverlay').classList.add('hidden');
+  // Refresh every 60 seconds to pick up reports from other users
+  setInterval(() => { loadVehicles(); loadStats(); }, 60000);
+}
+
+init();
+</script>
+</body>
+</html>
