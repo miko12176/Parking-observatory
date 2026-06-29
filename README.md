@@ -13,7 +13,7 @@ parking-observatory-glitch/
 
 ---
 
-## How to deploy on Glitch (step by step)
+## How to deploy on Glitch (step by step)  
 
 ### 1. Create a Glitch account
 Go to **glitch.com** and sign up (free, no credit card).
