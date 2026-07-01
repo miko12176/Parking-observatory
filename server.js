@@ -470,7 +470,10 @@ app.post('/api/vehicles/:id/confirm', (req, res) => {
       newLng = c.lng;
     }
 
-    const newConf = Math.min(99, Math.round(vehicle.confidence + (100 - vehicle.confidence) * 0.13));
+    // Growth rate tuned so 3 confirmations (from the default starting
+    // confidence of 12) reliably crosses the 50-point verified threshold,
+    // matching the "Verified (≥3 confirms)" label shown in the Stats tab.
+    const newConf = Math.min(99, Math.round(vehicle.confidence + (100 - vehicle.confidence) * 0.18));
     const newStatus = newConf >= 50 ? 'verified' : 'pending';
 
     db.prepare(`

@@ -583,7 +583,7 @@ body{font-family:-apple-system,'Inter','Segoe UI',sans-serif;font-size:14px;colo
 
 <!-- MOD PIN MODAL -->
 <!-- PHOTO REPORT SHEET -->
-<div class="sheet-backdrop" id="photoBackdrop" onclick="finishPhotoQueue()"></div>
+<div class="sheet-backdrop" id="photoBackdrop"></div>
 <div class="bottom-sheet" id="photoSheet">
   <div class="sheet-sticky-header">
     <button class="sheet-close-btn" onclick="finishPhotoQueue()" aria-label="Close">
@@ -721,12 +721,12 @@ const SESSION_ID = (() => {
 })();
 
 const STREETS = {
-  'Bouchestraße':     { capacity:28, lat:52.4769, lng:13.4543 },
-  'Karl-Kunger-Str.': { capacity:22, lat:52.4757, lng:13.4568 },
-  'Kiefholzstraße':   { capacity:18, lat:52.4745, lng:13.4588 },
-  'Heidelberger Str.':{ capacity:20, lat:52.4783, lng:13.4528 },
-  'Lohmühlenstraße':  { capacity:16, lat:52.4741, lng:13.4540 },
-  'Heidekampweg':     { capacity:14, lat:52.4789, lng:13.4562 },
+  'Bouchéstraße':      { capacity:28, lat:52.4769, lng:13.4543 },
+  'Karl-Kunger-Straße':{ capacity:22, lat:52.4757, lng:13.4568 },
+  'Kiefholzstraße':    { capacity:18, lat:52.4745, lng:13.4588 },
+  'Heidelberger Straße':{ capacity:20, lat:52.4783, lng:13.4528 },
+  'Lohmühlenstraße':   { capacity:16, lat:52.4741, lng:13.4540 },
+  'Heidekampweg':      { capacity:14, lat:52.4789, lng:13.4562 },
 };
 
 const TYPES = [
@@ -1461,9 +1461,31 @@ function renderList(q='') {
 }
 
 // ── RENDER STREETS ─────────────────────────────────────────────────────────────
+// Normalizes a street name for matching: strips accents, unifies straße/strasse/str.
+// spelling variants, and drops punctuation. Needed because the geocoder returns
+// the real official name (e.g. "Bouchéstraße") which won't exact-match a
+// differently-formatted string unless both sides go through this first.
+function normStreet(s) {
+  return (s || '')
+    .toLowerCase()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '') // strip accents: é -> e
+    .replace(/ß/g, 'ss')
+    .replace(/strasse|straße|str\./g, 'str')
+    .replace(/[^a-z0-9]/g, '');
+}
+const STREET_KEYS_NORM = Object.keys(STREETS).map(k => ({ key: k, norm: normStreet(k) }));
+function matchStreetKey(vStreet) {
+  const n = normStreet(vStreet);
+  if (!n) return null;
+  let hit = STREET_KEYS_NORM.find(s => s.norm === n);
+  if (hit) return hit.key;
+  hit = STREET_KEYS_NORM.find(s => n.includes(s.norm) || s.norm.includes(n));
+  return hit ? hit.key : null;
+}
+
 function renderStreets() {
   const cnt={};
-  vehicles.forEach(v=>{ cnt[v.street]=(cnt[v.street]||0)+1; });
+  vehicles.forEach(v=>{ const k=matchStreetKey(v.street); if(k) cnt[k]=(cnt[k]||0)+1; });
   const rows=Object.entries(STREETS).map(([n])=>({name:n,count:cnt[n]||0})).sort((a,b)=>b.count-a.count);
   const html=`<div class="sh" style="margin-top:0">Vehicles by street</div>`+rows.map(r=>{
     return `<div class="street-row"><div class="street-name">${r.name}</div><div style="font-size:12px;font-weight:700;color:var(--gray-900)">${r.count} vehicle${r.count===1?'':'s'}</div></div>`;
