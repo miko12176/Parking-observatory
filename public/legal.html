@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Privacy & Terms · Parking Observatory</title>
+<style>
+:root{
+  --teal:#1D9E75;--teal-dark:#0F6E56;
+  --gray-50:#F7F7F5;--gray-100:#EEEDE8;--gray-200:#D5D3CC;
+  --gray-400:#8C8B84;--gray-600:#5A5955;--gray-900:#1C1C1A;
+  --white:#FFFFFF;--border:rgba(0,0,0,.09);
+}
+*{box-sizing:border-box}
+body{font-family:-apple-system,'Inter','Segoe UI',sans-serif;color:var(--gray-900);background:var(--gray-50);margin:0;line-height:1.6}
+.topbar{background:var(--white);border-bottom:1px solid var(--border);padding:14px 20px;display:flex;align-items:center;gap:8px}
+.topbar a{color:var(--gray-600);text-decoration:none;font-size:13px;font-weight:600}
+.topbar a:hover{color:var(--gray-900)}
+.wrap{max-width:640px;margin:0 auto;padding:24px 20px 60px}
+h1{font-size:20px;margin:0 0 4px}
+h2{font-size:15px;margin:28px 0 8px;color:var(--gray-900)}
+p,li{font-size:13.5px;color:var(--gray-600)}
+ul{padding-left:20px}
+.note{background:var(--gray-100);border-radius:8px;padding:12px 14px;font-size:12.5px;color:var(--gray-600);margin-bottom:20px}
+a{color:var(--teal-dark)}
+.jump-nav{display:flex;gap:14px;margin-bottom:24px;border-bottom:1px solid var(--border);padding-bottom:12px}
+.jump-nav a{font-size:12.5px;font-weight:600;color:var(--teal-dark)}
+section{margin-bottom:40px}
+</style>
+</head>
+<body>
+
+<div class="topbar"><a href="/">← Back to map</a></div>
+
+<div class="wrap">
+
+  <div class="jump-nav">
+    <a href="#privacy">Privacy policy</a>
+    <a href="#terms">Terms and conditions</a>
+  </div>
+
+  <section id="privacy">
+    <h1>Privacy policy</h1>
+    <div class="note">Draft — last updated 1 July 2026. Written as a starting point for a small community project, not a substitute for legal advice.</div>
+
+    <h2>What this app is</h2>
+    <p>Parking Observatory is a community tool for the Karl-Kunger Kiez neighbourhood (Bouchestraße area, Berlin) that documents long-term parked vehicles based on resident reports.</p>
+
+    <h2>What we collect</h2>
+    <p><strong>When you report a vehicle:</strong></p>
+    <ul>
+      <li>The vehicle's approximate location (GPS coordinates, rounded to roughly 10 metres)</li>
+      <li>The licence plate, encrypted before storage (AES-256-GCM) — only a partial plate is ever shown publicly</li>
+      <li>Vehicle type and colour, which you select</li>
+      <li>If you report by photo: the photo is processed to extract location and plate text, then discarded — we do not keep a copy</li>
+    </ul>
+    <p><strong>Automatically:</strong> a random session identifier generated in your browser, used only to prevent duplicate confirmations. Not linked to your name, email, or any account — the app has no accounts. No cookies, no tracking, no analytics beyond basic server logs.</p>
+    <p><strong>We do not collect:</strong> your name, email, phone number, or any account information.</p>
+
+    <h2>Third parties we send data to</h2>
+    <ul>
+      <li><strong>Plate Recognizer</strong> — when you report by photo, the image is sent to this service to read the plate</li>
+      <li><strong>OpenStreetMap Nominatim</strong> — GPS coordinates are sent to resolve a street name, no plate or personal data included</li>
+      <li><strong>Railway</strong> — our hosting provider, which stores the database</li>
+    </ul>
+    <p>We do not sell data, run ads, or share data with anyone else.</p>
+
+    <h2>How long we keep data</h2>
+    <p>Vehicle reports remain until confirmed gone (three independent reports within 48 hours) or removed by a moderator. Photos are not retained. Encrypted plates remain readable only by whoever holds the server's private key.</p>
+
+    <h2>Your rights (GDPR)</h2>
+    <p>Since a licence plate can be personal data, you may have rights including access, correction, and deletion. As there are no accounts, requests should be made via the contact form below with enough detail to identify the relevant report.</p>
+
+    <h2>Contact</h2>
+    <p>For privacy questions or requests, use the <a href="https://docs.google.com/forms/d/e/1FAIpQLSfxUEkKmpR4I9vKp_Yjm_bL460Kzc2yKO0Bi-lB5vlhBZxX5g/viewform" target="_blank" rel="noopener">contact form</a>.</p>
+  </section>
+
+  <section id="terms">
+    <h1>Terms and conditions</h1>
+    <div class="note">Draft — last updated 1 July 2026. Written as a starting point for a small community project, not a substitute for legal advice.</div>
+
+    <h2>What this is</h2>
+    <p>Parking Observatory is a free, community-run tool documenting long-term parked vehicles in the Karl-Kunger Kiez neighbourhood, Berlin. It is not affiliated with any government authority and does not report vehicles to any enforcement body.</p>
+
+    <h2>Acceptable use</h2>
+    <ul>
+      <li>Report only vehicles you have genuinely observed, in good faith</li>
+      <li>Don't use the app to harass, target, or make false reports about individuals</li>
+      <li>Don't attempt to access moderator functions without authorisation</li>
+    </ul>
+
+    <h2>Accuracy of information</h2>
+    <p>Reports are submitted by community members and are not independently verified except where marked. We do not guarantee accuracy, completeness, or timeliness. Information should not be relied upon for legal, enforcement, or safety decisions.</p>
+
+    <h2>Photo reporting</h2>
+    <p>Photos are used only to extract location and plate, and are not stored afterward. By submitting a photo, you confirm you took it yourself and that doing so didn't put you or anyone else at risk.</p>
+
+    <h2>No warranty</h2>
+    <p>This app is provided "as is," run on a volunteer basis, with no guarantee of uptime or fitness for any particular purpose.</p>
+
+    <h2>Limitation of liability</h2>
+    <p>To the fullest extent permitted by law, the operators are not liable for damages, losses, or disputes arising from use of the app or reliance on its information.</p>
+
+    <h2>Governing law</h2>
+    <p>These terms are intended to be governed by German law, given the app's local scope.</p>
+
+    <h2>Contact</h2>
+    <p>For questions or disputes, use the <a href="https://docs.google.com/forms/d/e/1FAIpQLSfxUEkKmpR4I9vKp_Yjm_bL460Kzc2yKO0Bi-lB5vlhBZxX5g/viewform" target="_blank" rel="noopener">contact form</a>.</p>
+  </section>
+
+</div>
+</body>
+</html>
