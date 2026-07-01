@@ -277,32 +277,36 @@ const upload = multer({
  */
 async function prepareForOcr(buffer) {
   const LIMIT_BYTES = 3.3 * 1024 * 1024; // small safety margin under their 3.5MB cap
-  if (buffer.length <= LIMIT_BYTES) return buffer;
+  const meta = await sharp(buffer).rotate().metadata().catch(() => null);
+  const baseDims = meta ? { width: meta.width, height: meta.height } : null;
+  if (buffer.length <= LIMIT_BYTES) return { buffer, dims: baseDims };
   try {
     let quality = 85;
-    let resized = await sharp(buffer)
+    const resizeOnce = async (q) => sharp(buffer)
       .rotate() // apply EXIF orientation before resizing so the plate isn't sideways
       .resize({ width: 1920, height: 1920, fit: 'inside', withoutEnlargement: true })
-      .jpeg({ quality })
-      .toBuffer();
-    // If still too big (rare — very high detail images), step quality down further
+      .jpeg({ quality: q })
+      .toBuffer({ resolveWithObject: true });
+    let { data: resized, info } = await resizeOnce(quality);
     while (resized.length > LIMIT_BYTES && quality > 40) {
       quality -= 15;
-      resized = await sharp(buffer)
-        .rotate()
-        .resize({ width: 1920, height: 1920, fit: 'inside', withoutEnlargement: true })
-        .jpeg({ quality })
-        .toBuffer();
+      ({ data: resized, info } = await resizeOnce(quality));
     }
     console.log(`OCR: resized image ${buffer.length}B → ${resized.length}B (quality ${quality})`);
-    return resized;
+    return { buffer: resized, dims: { width: info.width, height: info.height } };
   } catch(e) {
     console.error('OCR: image resize failed, sending original:', e.message);
-    return buffer;
+    return { buffer, dims: baseDims };
   }
 }
 
-/** Run a buffer through Plate Recognizer's Snapshot API. Returns { plate, score } or null. */
+/**
+ * Run a buffer through Plate Recognizer's Snapshot API.
+ * Returns { plate, score, box } or null. box (if present) gives the plate's
+ * location as fractions (0-1) of the image dimensions — resolution
+ * independent, so the client can apply it to any size of the same photo to
+ * crop the review thumbnail toward the plate instead of an arbitrary crop.
+ */
 async function ocrPlate(buffer, filename) {
   const token = process.env.PLATE_RECOGNIZER_TOKEN;
   if (!token) {
@@ -310,7 +314,7 @@ async function ocrPlate(buffer, filename) {
     return null;
   }
   try {
-    const uploadBuffer = await prepareForOcr(buffer);
+    const { buffer: uploadBuffer, dims } = await prepareForOcr(buffer);
     const form = new FormData();
     form.append('upload', new Blob([uploadBuffer], { type: 'image/jpeg' }), filename || 'photo.jpg');
     form.append('regions', 'de');
@@ -335,7 +339,14 @@ async function ocrPlate(buffer, filename) {
       return null;
     }
     console.log(`OCR: plate "${best.plate}" at score ${best.score}`);
-    return { plate: (best.plate || '').toUpperCase(), score: best.score || 0 };
+    let box = null;
+    if (best.box && dims && dims.width && dims.height) {
+      box = {
+        xmin: best.box.xmin / dims.width, xmax: best.box.xmax / dims.width,
+        ymin: best.box.ymin / dims.height, ymax: best.box.ymax / dims.height,
+      };
+    }
+    return { plate: (best.plate || '').toUpperCase(), score: best.score || 0, box };
   } catch(e) {
     console.error('OCR request failed:', e.message);
     return null;
@@ -647,6 +658,7 @@ app.post('/api/surveyor/upload', requireMod, upload.single('photo'), async (req,
       ocrScore: ocr ? ocr.score : null,
       hasGps: lat !== null && lng !== null,
       hasPlate: !!(ocr && ocr.plate),
+      plateBox: ocr ? ocr.box : null,
       photoDataUrl: `data:${mimeType};base64,${buffer.toString('base64')}`,
     };
     surveyorDrafts.set(draftId, draft);
@@ -795,6 +807,7 @@ app.post('/api/photo-report/process', upload.single('photo'), async (req, res) =
       ocrPlate: ocr ? ocr.plate : null,
       ocrScore: ocr ? ocr.score : null,
       hasPlate: !!(ocr && ocr.plate),
+      plateBox: ocr ? ocr.box : null,
       lat, lng,
       hasGps: lat !== null && lng !== null,
       street,

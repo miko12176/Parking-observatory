@@ -58,12 +58,12 @@ body{font-family:-apple-system,'Inter','Segoe UI',sans-serif;font-size:14px;colo
 
 /* MOBILE DRAWER */
 .mobile-tabbar{display:none;background:var(--white);border-top:1px solid var(--border);z-index:200;flex-shrink:0;align-items:center;justify-content:space-around;height:58px;position:relative}
-.mtab-item{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;background:none;border:none;cursor:pointer;flex:1;height:100%;color:var(--gray-400)}
+.mtab-item{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;background:none;border:none;cursor:pointer;flex:1;height:100%;color:var(--gray-400);appearance:none;-webkit-appearance:none;padding:0;margin:0}
 .mtab-item svg{width:19px;height:19px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 .mtab-item span{font-size:9px;font-weight:600}
 .mtab-item.active{color:var(--teal)}
 .mtab-report{transform:translateY(-13px)}
-.mtab-report-circle{width:50px;height:50px;border-radius:50%;background:var(--teal);border:3px solid var(--white);box-shadow:0 3px 10px rgba(0,0,0,.18);display:flex;align-items:center;justify-content:center;transition:background .15s}
+.mtab-report-circle{width:50px;height:50px;border-radius:50%;background:var(--teal);border:3px solid var(--white);box-shadow:0 3px 10px rgba(0,0,0,.18);display:flex;align-items:center;justify-content:center;transition:background .15s;flex-shrink:0}
 .mtab-report:hover .mtab-report-circle,.mtab-report:active .mtab-report-circle{background:var(--teal-dark)}
 .mtab-report-circle svg{width:22px;height:22px;stroke:white}
 .mtab-report span{color:var(--teal-dark);margin-top:1px}
@@ -138,17 +138,18 @@ body{font-family:-apple-system,'Inter','Segoe UI',sans-serif;font-size:14px;colo
 /* FEEDBACK BUTTON — bottom left of map */
 .photo-choice-backdrop{position:fixed;inset:0;z-index:499;display:none}
 .photo-choice-backdrop.open{display:block}
-.photo-choice-menu{position:absolute;bottom:150px;right:12px;z-index:501;background:var(--white);border-radius:var(--r-lg);box-shadow:var(--shadow-md);border:1px solid var(--border);padding:6px;display:none;flex-direction:column;gap:2px;min-width:230px}
+.photo-choice-menu{position:absolute;bottom:150px;right:12px;z-index:501;background:var(--white);border-radius:var(--r-lg);box-shadow:var(--shadow-md);border:1px solid var(--border);padding:18px 20px 14px;display:none;flex-direction:column;align-items:center;min-width:210px}
 .photo-choice-menu.open{display:flex}
-.photo-choice-item{display:flex;align-items:center;gap:11px;padding:10px 10px;border-radius:var(--r-sm);border:none;background:transparent;cursor:pointer;text-align:left;transition:background .15s}
-.photo-choice-item:hover{background:var(--gray-50)}
-.photo-choice-item svg{width:19px;height:19px;flex-shrink:0;fill:none;stroke:var(--teal-dark);stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
-.pc-title{font-size:12.5px;font-weight:700;color:var(--gray-900)}
-.pc-sub{font-size:10.5px;color:var(--gray-400);margin-top:1px}
+.pc-camera-btn{width:70px;height:70px;border-radius:50%;background:var(--teal);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 14px rgba(29,158,117,.32);transition:background .15s;margin-bottom:9px;appearance:none;-webkit-appearance:none;padding:0;flex-shrink:0}
+.pc-camera-btn:hover{background:var(--teal-dark)}
+.pc-camera-btn svg{width:30px;height:30px;fill:none;stroke:white;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.pc-caption{font-size:10.5px;color:var(--gray-400);text-align:center;margin-bottom:13px}
+.pc-divider{width:100%;height:1px;background:var(--gray-100);margin-bottom:11px}
+.pc-manual-link{background:none;border:none;font-size:10.5px;color:var(--gray-600);text-decoration:underline;cursor:pointer;padding:0}
+.pc-manual-link:hover{color:var(--gray-900)}
 @media(max-width:640px){.photo-choice-menu{bottom:72px;left:50%;right:auto;transform:translateX(-50%)}}
 
-.tap-hint{position:absolute;top:12px;left:50%;transform:translateX(-50%);background:rgba(28,28,26,.82);color:white;font-size:12px;font-weight:500;padding:8px 16px;border-radius:20px;z-index:600;pointer-events:none;white-space:nowrap;transition:opacity .5s}
-.tap-hint.hidden{opacity:0}
+
 
 /* OUTSIDE ZONE TOAST — distinct from regular toast */
 .zone-hint{position:absolute;top:54px;left:50%;transform:translateX(-50%);background:#FAEEDA;color:#854F0B;border:1px solid #BA7517;font-size:12px;font-weight:500;padding:8px 14px;border-radius:var(--r-md);z-index:600;pointer-events:none;white-space:nowrap;transition:opacity .4s;opacity:0;max-width:90vw;text-align:center}
@@ -339,6 +340,11 @@ body{font-family:-apple-system,'Inter','Segoe UI',sans-serif;font-size:14px;colo
 .empty-state p{font-size:12px;line-height:1.6}
 .empty-state strong{color:var(--gray-600)}
 
+/* PHOTO REPORT FAB (desktop only — mobile uses the tab bar's Report button) */
+.photo-fab{position:absolute;bottom:90px;right:12px;z-index:500;width:50px;height:50px;border-radius:50%;background:var(--teal);border:none;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.22);display:flex;align-items:center;justify-content:center;transition:all .2s}
+.photo-fab:hover{background:var(--teal-dark);transform:scale(1.07)}
+.photo-fab svg{width:21px;height:21px;fill:none;stroke:white;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+
 /* MOBILE */
 @media(max-width:640px){
   .logo-text-full{display:none}
@@ -348,13 +354,7 @@ body{font-family:-apple-system,'Inter','Segoe UI',sans-serif;font-size:14px;colo
   .mobile-tabbar{display:flex}
   .photo-fab{display:none}
   .map-legend{bottom:68px}
-  .tap-hint{top:12px}
 }
-/* PHOTO REPORT FAB */
-.photo-fab{position:absolute;bottom:90px;right:12px;z-index:500;width:50px;height:50px;border-radius:50%;background:var(--teal);border:none;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.22);display:flex;align-items:center;justify-content:center;transition:all .2s}
-.photo-fab:hover{background:var(--teal-dark);transform:scale(1.07)}
-.photo-fab svg{width:21px;height:21px;fill:none;stroke:white;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
-@media(max-width:640px){.photo-fab{bottom:158px}}
 /* PHOTO SHEET */
 .photo-thumb{width:100%;max-height:180px;object-fit:cover;border-radius:var(--r-md);margin-bottom:12px;display:none}
 .photo-processing{display:none;align-items:center;gap:10px;font-size:13px;color:var(--gray-600);padding:8px 0 18px}
@@ -367,6 +367,12 @@ body{font-family:-apple-system,'Inter','Segoe UI',sans-serif;font-size:14px;colo
 .photo-queue-progress{font-size:11.5px;font-weight:600;color:var(--teal-dark);background:var(--teal-light);display:inline-block;padding:3px 10px;border-radius:20px;margin:2px 0 12px}
 .photo-skip-link{display:block;width:100%;text-align:center;background:none;border:none;color:var(--gray-400);font-size:12px;font-weight:600;padding:10px 0 4px;cursor:pointer}
 .photo-skip-link:hover{color:var(--gray-600)}
+.flag{font-size:10.5px;font-weight:600;padding:3px 8px;border-radius:20px;display:inline-flex;align-items:center;gap:4px;width:fit-content}
+.flag-ok{background:var(--teal-light);color:var(--teal-dark)}
+.flag-warn{background:var(--amber-light);color:var(--amber)}
+.sheet-close-btn{position:absolute;top:14px;right:14px;width:30px;height:30px;border-radius:50%;background:var(--gray-50);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--gray-600);z-index:10;appearance:none;-webkit-appearance:none;padding:0}
+.sheet-close-btn:hover{background:var(--gray-100)}
+.sheet-close-btn svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round}
 </style>
 </head>
 <body>
@@ -396,9 +402,6 @@ body{font-family:-apple-system,'Inter','Segoe UI',sans-serif;font-size:14px;colo
     <button class="btn-icon" onclick="showOnboarding()" title="Help">
       <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
     </button>
-    <button class="btn-icon" id="locateBtn" onclick="locateUser()" title="Go to my location (use Safari on iPhone)">
-      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/><circle cx="12" cy="12" r="8" stroke-dasharray="2 2"/></svg>
-    </button>
     <button class="btn-icon" id="heatBtn" onclick="toggleHeat()" title="Heatmap">
       <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
     </button>
@@ -419,18 +422,15 @@ body{font-family:-apple-system,'Inter','Segoe UI',sans-serif;font-size:14px;colo
     <div class="leg-row"><div class="leg-dot" style="background:#1C1C1A;border:1.5px dashed white;box-sizing:border-box;outline:1px solid #1C1C1A"></div>Pending</div>
   </div>
 
-  <!-- PHOTO REPORT FAB + choice popover -->
-  <input type="file" id="photoCameraInput" accept="image/*" capture="environment" style="display:none" onchange="onPhotoChosen(this.files[0])">
-  <input type="file" id="photoLibraryInput" accept="image/*" multiple style="display:none" onchange="onLibraryPhotosChosen(this.files)">
+  <!-- PHOTO REPORT + choice popover -->
+  <input type="file" id="photoInput" accept="image/*" multiple style="display:none" onchange="onPhotoInputChange(this.files)">
   <div class="photo-choice-menu" id="photoChoiceMenu">
-    <button class="photo-choice-item" onclick="closePhotoChoice();document.getElementById('photoCameraInput').click()">
+    <button class="pc-camera-btn" onclick="startPhotoCapture()" title="Report by photo">
       <svg viewBox="0 0 24 24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
-      <div><div class="pc-title">Take a photo</div><div class="pc-sub">Location comes from your device</div></div>
     </button>
-    <button class="photo-choice-item" onclick="closePhotoChoice();document.getElementById('photoLibraryInput').click()">
-      <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
-      <div><div class="pc-title">Choose from library</div><div class="pc-sub">Select several to report them one after another</div></div>
-    </button>
+    <div class="pc-caption">Get close to the licence plate</div>
+    <div class="pc-divider"></div>
+    <button class="pc-manual-link" onclick="openManualEntry()">No photo? Type the plate</button>
   </div>
   <div class="photo-choice-backdrop" id="photoChoiceBackdrop" onclick="closePhotoChoice()"></div>
   <button class="photo-fab" id="photoFabBtn" onclick="togglePhotoChoice()" title="Report a vehicle by photo">
@@ -438,7 +438,6 @@ body{font-family:-apple-system,'Inter','Segoe UI',sans-serif;font-size:14px;colo
   </button>
 
   <div class="zone-hint" id="zoneHint">📍 This spot is outside the Karl-Kunger Kiez focus area — you can still report here.</div>
-  <div class="tap-hint" id="tapHint">👆 Tap the map where a vehicle is parked</div>
 
   <!-- DESKTOP SIDEBAR -->
   <div class="sidebar">
@@ -455,6 +454,19 @@ body{font-family:-apple-system,'Inter','Segoe UI',sans-serif;font-size:14px;colo
   </div>
 </div>
 
+<!-- MOBILE DRAWER (must precede the tab bar in DOM order so it expands upward, above the tab bar, instead of pushing the tab bar around) -->
+<div class="drawer-panel" id="drawerPanel">
+  <div class="drawer-tabs sidebar-tabs">
+    <div class="stab active" onclick="switchTab('stats',this)">Stats</div>
+    <div class="stab" onclick="switchTab('vehicles',this)">Vehicles</div>
+    <div class="stab" onclick="switchTab('streets',this)">Streets</div>
+  </div>
+  <div class="drawer-body">
+    <div class="tab-panel active" id="dtab-stats"></div>
+    <div class="tab-panel" id="dtab-vehicles"></div>
+    <div class="tab-panel" id="dtab-streets"></div>
+  </div>
+</div>
 <!-- MOBILE TAB BAR -->
 <div class="mobile-tabbar" id="mobileTabbar">
   <button class="mtab-item active" id="mtabMap" onclick="mobileTabTap('map')">
@@ -471,18 +483,6 @@ body{font-family:-apple-system,'Inter','Segoe UI',sans-serif;font-size:14px;colo
     <svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
     <span>Stats</span>
   </button>
-</div>
-<div class="drawer-panel" id="drawerPanel">
-  <div class="drawer-tabs sidebar-tabs">
-    <div class="stab active" onclick="switchTab('stats',this)">Stats</div>
-    <div class="stab" onclick="switchTab('vehicles',this)">Vehicles</div>
-    <div class="stab" onclick="switchTab('streets',this)">Streets</div>
-  </div>
-  <div class="drawer-body">
-    <div class="tab-panel active" id="dtab-stats"></div>
-    <div class="tab-panel" id="dtab-vehicles"></div>
-    <div class="tab-panel" id="dtab-streets"></div>
-  </div>
 </div>
 
 <!-- ONBOARDING -->
@@ -522,6 +522,9 @@ body{font-family:-apple-system,'Inter','Segoe UI',sans-serif;font-size:14px;colo
 <!-- BOTTOM SHEET (report + nearby) -->
 <div class="sheet-backdrop" id="sheetBackdrop" onclick="closeSheet()"></div>
 <div class="bottom-sheet" id="bottomSheet">
+  <button class="sheet-close-btn" onclick="closeSheet()" aria-label="Close">
+    <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+  </button>
   <div class="sheet-handle"></div>
   <div class="sheet-title"><span id="sheetIcon">📍</span><span id="sheetTitleText"></span></div>
   <div class="sheet-sub" id="sheetSub"></div>
@@ -597,6 +600,9 @@ body{font-family:-apple-system,'Inter','Segoe UI',sans-serif;font-size:14px;colo
 <!-- PHOTO REPORT SHEET -->
 <div class="sheet-backdrop" id="photoBackdrop" onclick="finishPhotoQueue()"></div>
 <div class="bottom-sheet" id="photoSheet">
+  <button class="sheet-close-btn" onclick="finishPhotoQueue()" aria-label="Close">
+    <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+  </button>
   <div class="sheet-handle"></div>
   <div class="sheet-title">📷 Photo report</div>
   <div class="photo-queue-progress" id="photoQueueProgress"></div>
@@ -641,7 +647,8 @@ body{font-family:-apple-system,'Inter','Segoe UI',sans-serif;font-size:14px;colo
     <!-- Plate -->
     <div class="form-group">
       <label class="form-label">Licence plate<span class="required-star">*</span></label>
-      <input class="form-input plate-input" id="photoPlate" maxlength="12" placeholder="e.g. B AB 1234"
+      <div id="photoPlateBadge" style="margin-bottom:6px"></div>
+      <input class="form-input plate-input" id="photoPlate" maxlength="12" placeholder="e.g. BAB1234"
         oninput="this.value=this.value.toUpperCase().replace(/\s/g,'')">
       <div class="lock-row"><svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>Stored privately. Public view shows partial plate only.</div>
     </div>
@@ -739,18 +746,23 @@ const TYPES = [
   { key:'Truck',            emoji:'🚛', label:'Truck' },
   { key:'Cargo trailer',    svgIcon:'cargo',   label:'Cargo trailer' },
   { key:'Camper trailer',   svgIcon:'camper',  label:'Camper trailer' },
-  { key:'Motorcycle',       emoji:'🏍',  label:'Motorcycle' },
-  { key:'Unknown',          emoji:'❓', label:'Unknown' },
+  { key:'Motorcycle',       emoji:'🏍',  label:'Moto' },
 ];
 
-// Cargo trailer — compact flat box on two wheels with hitch bar
+// Cargo trailer — small open utility trailer: visible ball-hitch coupling,
+// lattice/open sides (not a solid flatbed) so it reads clearly as a towed
+// trailer rather than an ambiguous box.
 const CARGO_TRAILER_SVG = `<svg viewBox="0 0 34 20" width="30" height="18" fill="none" xmlns="http://www.w3.org/2000/svg" style="display:block;margin:0 auto 4px">
-  <line x1="0" y1="10" x2="5" y2="10" stroke="#5A5955" stroke-width="2" stroke-linecap="round"/>
-  <circle cx="5" cy="10" r="2" fill="#5A5955"/>
-  <rect x="7" y="4" width="24" height="11" rx="2" fill="#D5D3CC" stroke="#5A5955" stroke-width="1.5"/>
-  <line x1="27" y1="4" x2="27" y2="15" stroke="#5A5955" stroke-width="1" stroke-dasharray="2 1"/>
-  <circle cx="12" cy="17" r="2.5" fill="#2A2A28" stroke="#5A5955" stroke-width="1"/>
-  <circle cx="23" cy="17" r="2.5" fill="#2A2A28" stroke="#5A5955" stroke-width="1"/>
+  <line x1="0" y1="11" x2="6" y2="11" stroke="#5A5955" stroke-width="2" stroke-linecap="round"/>
+  <circle cx="1.5" cy="11" r="1.6" fill="#5A5955"/>
+  <path d="M6 11 L9 6 L9 15 Z" fill="#8C8B84"/>
+  <rect x="9" y="5" width="22" height="10" rx="1.5" fill="none" stroke="#5A5955" stroke-width="1.5"/>
+  <line x1="13.5" y1="5" x2="13.5" y2="15" stroke="#8C8B84" stroke-width="1"/>
+  <line x1="18" y1="5" x2="18" y2="15" stroke="#8C8B84" stroke-width="1"/>
+  <line x1="22.5" y1="5" x2="22.5" y2="15" stroke="#8C8B84" stroke-width="1"/>
+  <line x1="27" y1="5" x2="27" y2="15" stroke="#8C8B84" stroke-width="1"/>
+  <circle cx="14" cy="17.5" r="2.4" fill="#2A2A28" stroke="#5A5955" stroke-width="1"/>
+  <circle cx="26" cy="17.5" r="2.4" fill="#2A2A28" stroke="#5A5955" stroke-width="1"/>
 </svg>`;
 
 // Camper trailer — caravan body with windows, rounded roof, hitch at front, NO cab/engine
@@ -786,7 +798,7 @@ const DUR_PRESETS = [
 ];
 
 // ── STATE ──────────────────────────────────────────────────────────────────
-let map, markers={}, heatCircles=[], heatOn=false, userMarker=null, zonePoly=null;
+let map, markers={}, heatCells=[], heatOn=false, userMarker=null, zonePoly=null;
 let vehicles=[], activeFilter='all', selectedId=null;
 let tapLat=null, tapLng=null, confirmedLat=null, confirmedLng=null;
 let selectedType='Passenger car', selectedColor='#D5D3CC', selectedColorName='Silver';
@@ -847,7 +859,6 @@ function initMap() {
   // Auto-locate on load for Safari on iPhone — pans to user if within 3km of zone
   // Chrome on iOS will silently skip (handled in requestUserLocation)
   requestUserLocation(true);
-  setTimeout(() => document.getElementById('tapHint').classList.add('hidden'), 8000);
 }
 
 // ── POINT IN POLYGON ────────────────────────────────────────────────────────
@@ -865,27 +876,10 @@ function isInsideZone(lat, lng) {
 }
 
 async function onMapClick(e) {
-  document.getElementById('tapHint').classList.add('hidden');
-
-  // Ripple
-  const pt = map.latLngToContainerPoint(e.latlng);
-  const r = document.createElement('div');
-  r.className = 'tap-ripple'; r.style.left = pt.x+'px'; r.style.top = pt.y+'px';
-  document.getElementById('map').appendChild(r); setTimeout(()=>r.remove(), 600);
-
+  // Reporting is now done via the Report button (photo or manual entry) —
+  // tapping the map no longer opens a report. Moderators still get a hint
+  // toward dragging pins, which is the one map-tap interaction that remains.
   if (modMode) { showToast('Drag a pin to reposition it'); return; }
-
-  tapLat = e.latlng.lat; tapLng = e.latlng.lng;
-
-  // Zone check — show gentle hint if OUTSIDE zone, but always allow reporting
-  if (!isInsideZone(tapLat, tapLng)) {
-    const zh = document.getElementById('zoneHint');
-    zh.classList.add('show');
-    setTimeout(() => zh.classList.remove('show'), 4000);
-  }
-
-  // Always proceed to preview regardless of zone
-  showPreview(tapLat, tapLng);
 }
 
 // ── LOCATION PREVIEW ────────────────────────────────────────────────────────
@@ -910,6 +904,11 @@ function confirmPreview() {
   const pos = previewMarker ? previewMarker.getLatLng() : { lat: tapLat, lng: tapLng };
   confirmedLat = pos.lat; confirmedLng = pos.lng;
   document.getElementById('previewOverlay').style.display = 'none';
+  if (!isInsideZone(confirmedLat, confirmedLng)) {
+    const zh = document.getElementById('zoneHint');
+    zh.classList.add('show');
+    setTimeout(() => zh.classList.remove('show'), 4000);
+  }
   checkNearby(confirmedLat, confirmedLng);
 }
 
@@ -943,12 +942,8 @@ function requestUserLocation(onInit=false) {
     return;
   }
 
-  const btn = document.getElementById('locateBtn');
-  btn.style.opacity = '.5';
-
   navigator.geolocation.getCurrentPosition(
     pos => {
-      btn.style.opacity = ''; btn.classList.add('located');
       const lat = pos.coords.latitude;
       const lng = pos.coords.longitude;
 
@@ -969,7 +964,6 @@ function requestUserLocation(onInit=false) {
       if (!onInit) showToast('Map centred on your location');
     },
     err => {
-      btn.style.opacity = '';
       if (!onInit) {
         const msgs = {
           1: 'Location access denied — check your browser settings',
@@ -997,6 +991,7 @@ function makeIcon(v) {
   const col = pinColor(v);
   const isPend = v.status === 'pending';
   const sel = selectedId === v.id;
+  const isTrailer = v.type === 'Cargo trailer' || v.type === 'Camper trailer';
   const sz = sel ? 20 : 15; // subtle size difference for selected
   const r = sz/2 - 1.5;
   // All pins are circles — consistent, simpler
@@ -1007,9 +1002,13 @@ function makeIcon(v) {
   const dash = isPend ? `stroke-dasharray="3 2"` : '';
   const opacity = isPend ? '0.92' : '0.92';
   const shape = `<circle cx="${sz/2}" cy="${sz/2}" r="${r}" fill="${col}" fill-opacity="${opacity}" stroke="${stroke}" stroke-width="${strokeW}" ${dash}/>`;
+  // Trailers get a small badge in the corner so they're distinguishable from cars at a glance
+  const badge = isTrailer
+    ? `<circle cx="${sz-2.5}" cy="2.5" r="3.4" fill="white" stroke="${col}" stroke-width="1"/><text x="${sz-2.5}" y="4" text-anchor="middle" font-size="4.6" font-weight="700" fill="${col}">T</text>`
+    : '';
   return L.divIcon({
-    html: `<svg width="${sz}" height="${sz}" viewBox="0 0 ${sz} ${sz}" xmlns="http://www.w3.org/2000/svg">${shape}</svg>`,
-    className: '', iconSize:[sz,sz], iconAnchor:[sz/2,sz/2]
+    html: `<svg width="${sz+4}" height="${sz+4}" viewBox="0 0 ${sz+4} ${sz+4}" xmlns="http://www.w3.org/2000/svg"><g transform="translate(2,2)">${shape}${badge}</g></svg>`,
+    className: '', iconSize:[sz+4,sz+4], iconAnchor:[(sz+4)/2,(sz+4)/2]
   });
 }
 
@@ -1126,19 +1125,47 @@ function closeDetail() {
 function toggleHeat() {
   heatOn = !heatOn;
   document.getElementById('heatBtn').classList.toggle('active-heat', heatOn);
-  heatOn ? drawHeat() : (heatCircles.forEach(c=>map.removeLayer(c)), heatCircles=[]);
+  heatOn ? drawHeat() : (heatCells.forEach(c=>map.removeLayer(c)), heatCells=[]);
 }
+
+// Density grid: bounding box around the Kiez zone, split into a fixed
+// number of cells per side. Each vehicle's intensity contribution is 1
+// (base) plus a bonus for long-stayers, so a street with a few 90+ day
+// vehicles can outrank a street with many fresh ones — matching how the
+// problem actually feels to residents, not just raw vehicle count.
+const HEAT_GRID_SIZE = 7; // cells per side
 function drawHeat() {
-  heatCircles.forEach(c=>map.removeLayer(c)); heatCircles=[];
-  const cnt={};
-  vehicles.forEach(v => { cnt[v.street]=(cnt[v.street]||0)+1; });
-  const mx = Math.max(...Object.values(cnt), 1);
-  Object.entries(STREETS).forEach(([name,s]) => {
-    const n=cnt[name]||0; if(!n) return;
-    const i=n/mx;
-    const col=i>.7?'#C93A3A':i>.4?'#BA7517':'#1D9E75';
-    const c=L.circle([s.lat,s.lng],{radius:70+i*90,color:'transparent',fillColor:col,fillOpacity:.15+i*.22}).addTo(map);
-    heatCircles.push(c);
+  heatCells.forEach(c=>map.removeLayer(c)); heatCells=[];
+
+  const lats = ZONE_COORDS.map(p=>p[0]), lngs = ZONE_COORDS.map(p=>p[1]);
+  const minLat = Math.min(...lats), maxLat = Math.max(...lats);
+  const minLng = Math.min(...lngs), maxLng = Math.max(...lngs);
+  const latStep = (maxLat - minLat) / HEAT_GRID_SIZE;
+  const lngStep = (maxLng - minLng) / HEAT_GRID_SIZE;
+
+  const grid = {}; // "row,col" -> intensity
+  vehicles.forEach(v => {
+    if (v.lat < minLat || v.lat > maxLat || v.lng < minLng || v.lng > maxLng) return;
+    const row = Math.min(HEAT_GRID_SIZE-1, Math.floor((v.lat - minLat) / latStep));
+    const col = Math.min(HEAT_GRID_SIZE-1, Math.floor((v.lng - minLng) / lngStep));
+    const key = row+','+col;
+    const longStayerBonus = v.days >= 90 ? 2 : v.days >= 14 ? 0.8 : 0;
+    grid[key] = (grid[key] || 0) + 1 + longStayerBonus;
+  });
+
+  const maxIntensity = Math.max(...Object.values(grid), 1);
+  Object.entries(grid).forEach(([key, intensity]) => {
+    const [row, col] = key.split(',').map(Number);
+    const i = intensity / maxIntensity;
+    const col_ = i>.66 ? '#C93A3A' : i>.33 ? '#BA7517' : '#1D9E75';
+    const bounds = [
+      [minLat + row*latStep, minLng + col*lngStep],
+      [minLat + (row+1)*latStep, minLng + (col+1)*lngStep],
+    ];
+    const rect = L.rectangle(bounds, {
+      color: 'transparent', fillColor: col_, fillOpacity: 0.14 + i*0.28, interactive: false,
+    }).addTo(map);
+    heatCells.push(rect);
   });
 }
 
@@ -1177,13 +1204,25 @@ function showNewReportSheet() {
   openSheet();
 }
 
+/** Disables/enables Leaflet map dragging and touch gestures while any sheet is open, so a swipe meant for the sheet can't leak through and pan the map underneath. */
+function setMapInteractive(enabled) {
+  if (!map) return;
+  if (enabled) {
+    map.dragging.enable(); map.touchZoom.enable(); map.doubleClickZoom.enable(); map.scrollWheelZoom.enable();
+  } else {
+    map.dragging.disable(); map.touchZoom.disable(); map.doubleClickZoom.disable(); map.scrollWheelZoom.disable();
+  }
+}
+
 function openSheet() {
   document.getElementById('sheetBackdrop').classList.add('open');
   document.getElementById('bottomSheet').classList.add('open');
+  setMapInteractive(false);
 }
 function closeSheet() {
   document.getElementById('sheetBackdrop').classList.remove('open');
   document.getElementById('bottomSheet').classList.remove('open');
+  setMapInteractive(true);
 }
 
 function resetTypeColor() {
@@ -1452,6 +1491,8 @@ function openFeedback() { document.getElementById('feedbackModal').classList.add
 function closeFeedback() { document.getElementById('feedbackModal').classList.remove('open'); }
 
 // ── PHOTO REPORT FLOW ────────────────────────────────────────────────────────
+let pendingDeviceLocation = null;
+
 function togglePhotoChoice() {
   document.getElementById('photoChoiceMenu').classList.toggle('open');
   document.getElementById('photoChoiceBackdrop').classList.toggle('open');
@@ -1461,7 +1502,34 @@ function closePhotoChoice() {
   document.getElementById('photoChoiceBackdrop').classList.remove('open');
 }
 
-function onLibraryPhotosChosen(fileList) {
+function startPhotoCapture() {
+  pendingDeviceLocation = new Promise((resolve) => {
+    if (!navigator.geolocation) { resolve(null); return; }
+    navigator.geolocation.getCurrentPosition(
+      p => resolve({ lat: p.coords.latitude, lng: p.coords.longitude }),
+      () => resolve(null),
+      { enableHighAccuracy: true, timeout: 12000 }
+    );
+  });
+  closePhotoChoice();
+  document.getElementById('photoInput').click();
+}
+
+function openManualEntry() {
+  closePhotoChoice();
+  const openAt = (lat, lng) => showPreview(lat, lng);
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(
+      p => openAt(p.coords.latitude, p.coords.longitude),
+      () => openAt(CENTER[0], CENTER[1]),
+      { enableHighAccuracy: true, timeout: 5000 }
+    );
+  } else {
+    openAt(CENTER[0], CENTER[1]);
+  }
+}
+
+function onPhotoInputChange(fileList) {
   const files = Array.from(fileList);
   if (!files.length) return;
   photoQueue = files;
@@ -1507,11 +1575,10 @@ function onPhotoChosen(file) {
     progressEl.style.display = 'none';
     skipLink.style.display = 'none';
   }
-  // Show thumbnail immediately while processing
   const thumb = document.getElementById('photoThumb');
+  thumb.style.objectFit = 'contain';
   thumb.src = URL.createObjectURL(file);
   thumb.style.display = 'block';
-  // Reset all state
   photoLat=null; photoLng=null; photoDays=null;
   photoSelectedType='Passenger car'; photoSelectedColor='#D5D3CC'; photoSelectedColorName='Silver';
   document.getElementById('photoPlate').value='';
@@ -1519,16 +1586,36 @@ function onPhotoChosen(file) {
   document.getElementById('photoLocStatus').innerHTML='';
   document.getElementById('photoMapWrap').style.display='none';
   document.getElementById('photoParkedSince').classList.remove('show');
+  document.getElementById('photoPlateBadge').innerHTML='';
   document.querySelectorAll('#photoDurPresets .preset-btn').forEach(b=>b.classList.remove('selected'));
   document.querySelectorAll('#photoTypeGrid .type-btn').forEach(b=>b.classList.toggle('selected',b.dataset.type==='Passenger car'));
   document.querySelectorAll('#photoColorPicker .color-swatch').forEach(s=>s.classList.toggle('selected',s.dataset.color==='#D5D3CC'));
   document.getElementById('colorDetectedHint').textContent='';
-  // Open sheet in processing state
   document.getElementById('photoReviewForm').style.display='none';
   document.getElementById('photoProcessing').classList.add('active');
   document.getElementById('photoBackdrop').classList.add('open');
   document.getElementById('photoSheet').classList.add('open');
+  setMapInteractive(false);
   processPhoto(file);
+}
+
+function cropThumbToPlate(imgEl, box) {
+  try {
+    const iw = imgEl.naturalWidth, ih = imgEl.naturalHeight;
+    if (!iw || !ih) return;
+    const bw = (box.xmax - box.xmin) * iw, bh = (box.ymax - box.ymin) * ih;
+    const padX = bw * 1.4, padY = bh * 1.8;
+    let sx = Math.max(0, box.xmin * iw - padX);
+    let sy = Math.max(0, box.ymin * ih - padY);
+    let sw = Math.min(iw - sx, bw + padX * 2);
+    let sh = Math.min(ih - sy, bh + padY * 2);
+    const canvas = document.createElement('canvas');
+    canvas.width = 400; canvas.height = Math.round(400 * sh / sw);
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(imgEl, sx, sy, sw, sh, 0, 0, canvas.width, canvas.height);
+    document.getElementById('photoThumb').style.objectFit = 'cover';
+    document.getElementById('photoThumb').src = canvas.toDataURL('image/jpeg', 0.85);
+  } catch(e) {}
 }
 
 async function processPhoto(file) {
@@ -1538,35 +1625,37 @@ async function processPhoto(file) {
     const res = await fetch('/api/photo-report/process', { method:'POST', body:form });
     const data = await res.json();
 
-    // Pre-fill plate from OCR
-    if (data.hasPlate) document.getElementById('photoPlate').value = data.ocrPlate;
+    if (data.hasPlate) {
+      document.getElementById('photoPlate').value = (data.ocrPlate || '').replace(/\s/g, '');
+      document.getElementById('photoPlateBadge').innerHTML = `<span class="flag flag-ok">🔤 Plate read automatically</span>`;
+    } else {
+      document.getElementById('photoPlateBadge').innerHTML = `<span class="flag flag-warn">⚠ Plate not recognised — enter it manually below</span>`;
+    }
 
-    // Location: EXIF GPS → device GPS → map tap
+    if (data.plateBox) {
+      const thumb = document.getElementById('photoThumb');
+      const doCrop = () => cropThumbToPlate(thumb, data.plateBox);
+      if (thumb.complete && thumb.naturalWidth > 0) doCrop();
+      else thumb.addEventListener('load', doCrop, { once:true });
+    }
+
     if (data.hasGps) {
       photoLat=data.lat; photoLng=data.lng;
       setPhotoLocStatus('gps', data.street);
       showPhotoMap(data.lat, data.lng);
     } else {
       setPhotoLocStatus('requesting');
-      try {
-        const pos = await new Promise((ok, fail) => {
-          if (!navigator.geolocation) { fail(new Error('unavailable')); return; }
-          navigator.geolocation.getCurrentPosition(
-            p => ok({ lat:p.coords.latitude, lng:p.coords.longitude }),
-            err => fail(err),
-            { enableHighAccuracy:true, timeout:10000 }
-          );
-        });
+      const pos = pendingDeviceLocation ? await pendingDeviceLocation : null;
+      if (pos) {
         photoLat=pos.lat; photoLng=pos.lng;
         setPhotoLocStatus('device', null);
         showPhotoMap(pos.lat, pos.lng);
-      } catch(e) {
+      } else {
         setPhotoLocStatus('tap');
         showPhotoMap(null, null);
       }
     }
 
-    // Color detection — best effort, user can override
     const thumb = document.getElementById('photoThumb');
     const tryDetect = () => {
       const detected = detectDominantColor(thumb);
@@ -1688,8 +1777,8 @@ function closePhotoSheet() {
   const thumb=document.getElementById('photoThumb');
   if (thumb.src.startsWith('blob:')) URL.revokeObjectURL(thumb.src);
   thumb.src=''; thumb.style.display='none';
-  document.getElementById('photoCameraInput').value='';
-  document.getElementById('photoLibraryInput').value='';
+  document.getElementById('photoInput').value='';
+  setMapInteractive(true);
 }
 
 function selectPhotoType(el) {
