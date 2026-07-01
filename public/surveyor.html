@@ -469,7 +469,7 @@ function renderDraftCard(draft) {
   // Map
   const center = draft.hasGps ? [draft.lat, draft.lng] : [DEFAULT_CENTER.lat, DEFAULT_CENTER.lng];
   const map = L.map('map-' + id, { center, zoom: draft.hasGps ? 18 : 16, zoomControl: false });
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(map);
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', { subdomains:'abcd', maxZoom: 19 }).addTo(map);
 
   let marker = null;
   if (draft.hasGps) {

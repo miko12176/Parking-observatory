@@ -98,6 +98,11 @@ body{font-family:-apple-system,'Inter','Segoe UI',sans-serif;font-size:14px;colo
 .occ-labels{display:flex;justify-content:space-between;font-size:9px;color:var(--gray-400)}
 /* VEHICLE LIST */
 .search-bar{display:flex;align-items:center;gap:7px;background:var(--gray-50);border:1px solid var(--border-med);border-radius:var(--r-sm);padding:6px 9px;margin-bottom:9px}
+.import-photos-row{display:flex;align-items:center;gap:8px;width:100%;background:var(--teal-light);border:none;border-radius:var(--r-sm);padding:9px 11px;margin-bottom:11px;cursor:pointer;font-size:12px;font-weight:600;color:var(--teal-dark);text-align:left}
+.import-photos-row:hover{background:#D3EFE3}
+.import-photos-row svg{width:16px;height:16px;flex-shrink:0;fill:none;stroke:var(--teal-dark);stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.add-manually-row{text-align:center;font-size:11.5px;color:var(--gray-400);text-decoration:underline;cursor:pointer;padding:14px 0 4px}
+.add-manually-row:hover{color:var(--gray-600)}
 .search-bar svg{width:13px;height:13px;stroke:var(--gray-400);fill:none;stroke-width:2;flex-shrink:0}
 .search-bar input{border:none;background:transparent;font-size:12px;color:var(--gray-900);flex:1;outline:none;font-family:inherit}
 .search-bar input::placeholder{color:var(--gray-400)}
@@ -134,20 +139,6 @@ body{font-family:-apple-system,'Inter','Segoe UI',sans-serif;font-size:14px;colo
 .leg-row{display:flex;align-items:center;gap:6px;margin-bottom:3px;color:var(--gray-600)}
 .leg-row:last-child{margin-bottom:0}
 .leg-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
-
-/* FEEDBACK BUTTON — bottom left of map */
-.photo-choice-backdrop{position:fixed;inset:0;z-index:499;display:none}
-.photo-choice-backdrop.open{display:block}
-.photo-choice-menu{position:absolute;bottom:150px;right:12px;z-index:501;background:var(--white);border-radius:var(--r-lg);box-shadow:var(--shadow-md);border:1px solid var(--border);padding:18px 20px 14px;display:none;flex-direction:column;align-items:center;min-width:210px}
-.photo-choice-menu.open{display:flex}
-.pc-camera-btn{width:70px;height:70px;border-radius:50%;background:var(--teal);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 14px rgba(29,158,117,.32);transition:background .15s;margin-bottom:9px;appearance:none;-webkit-appearance:none;padding:0;flex-shrink:0}
-.pc-camera-btn:hover{background:var(--teal-dark)}
-.pc-camera-btn svg{width:30px;height:30px;fill:none;stroke:white;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
-.pc-caption{font-size:10.5px;color:var(--gray-400);text-align:center;margin-bottom:13px}
-.pc-divider{width:100%;height:1px;background:var(--gray-100);margin-bottom:11px}
-.pc-manual-link{background:none;border:none;font-size:10.5px;color:var(--gray-600);text-decoration:underline;cursor:pointer;padding:0}
-.pc-manual-link:hover{color:var(--gray-900)}
-@media(max-width:640px){.photo-choice-menu{bottom:72px;left:50%;right:auto;transform:translateX(-50%)}}
 
 
 
@@ -370,7 +361,8 @@ body{font-family:-apple-system,'Inter','Segoe UI',sans-serif;font-size:14px;colo
 .flag{font-size:10.5px;font-weight:600;padding:3px 8px;border-radius:20px;display:inline-flex;align-items:center;gap:4px;width:fit-content}
 .flag-ok{background:var(--teal-light);color:var(--teal-dark)}
 .flag-warn{background:var(--amber-light);color:var(--amber)}
-.sheet-close-btn{position:absolute;top:14px;right:14px;width:30px;height:30px;border-radius:50%;background:var(--gray-50);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--gray-600);z-index:10;appearance:none;-webkit-appearance:none;padding:0}
+.sheet-sticky-header{position:sticky;top:0;z-index:20;display:flex;justify-content:flex-end;background:var(--white);margin:0 -16px;padding:10px 14px 0}
+.sheet-close-btn{width:30px;height:30px;border-radius:50%;background:var(--gray-50);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--gray-600);appearance:none;-webkit-appearance:none;padding:0}
 .sheet-close-btn:hover{background:var(--gray-100)}
 .sheet-close-btn svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round}
 </style>
@@ -402,6 +394,9 @@ body{font-family:-apple-system,'Inter','Segoe UI',sans-serif;font-size:14px;colo
     <button class="btn-icon" onclick="showOnboarding()" title="Help">
       <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
     </button>
+    <button class="btn-icon" id="locateBtn" onclick="locateUser()" title="Go to my location (use Safari on iPhone)">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/><circle cx="12" cy="12" r="8" stroke-dasharray="2 2"/></svg>
+    </button>
     <button class="btn-icon" id="heatBtn" onclick="toggleHeat()" title="Heatmap">
       <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
     </button>
@@ -422,18 +417,11 @@ body{font-family:-apple-system,'Inter','Segoe UI',sans-serif;font-size:14px;colo
     <div class="leg-row"><div class="leg-dot" style="background:#1C1C1A;border:1.5px dashed white;box-sizing:border-box;outline:1px solid #1C1C1A"></div>Pending</div>
   </div>
 
-  <!-- PHOTO REPORT + choice popover -->
-  <input type="file" id="photoInput" accept="image/*" multiple style="display:none" onchange="onPhotoInputChange(this.files)">
-  <div class="photo-choice-menu" id="photoChoiceMenu">
-    <button class="pc-camera-btn" onclick="startPhotoCapture()" title="Report by photo">
-      <svg viewBox="0 0 24 24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
-    </button>
-    <div class="pc-caption">Get close to the licence plate</div>
-    <div class="pc-divider"></div>
-    <button class="pc-manual-link" onclick="openManualEntry()">No photo? Type the plate</button>
-  </div>
-  <div class="photo-choice-backdrop" id="photoChoiceBackdrop" onclick="closePhotoChoice()"></div>
-  <button class="photo-fab" id="photoFabBtn" onclick="togglePhotoChoice()" title="Report a vehicle by photo">
+  <!-- PHOTO REPORT — Report button opens the camera directly, no menu -->
+  <input type="file" id="photoCameraInput" accept="image/*" capture="environment" style="display:none" onchange="onPhotoInputChange(this.files)">
+  <!-- Import photos — separate entry point, lives in the Vehicles list, supports multi-select -->
+  <input type="file" id="photoImportInput" accept="image/*" multiple style="display:none" onchange="onPhotoInputChange(this.files)">
+  <button class="photo-fab" id="photoFabBtn" onclick="startPhotoCapture()" title="Report a vehicle by photo">
     <svg viewBox="0 0 24 24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
   </button>
 
@@ -498,7 +486,7 @@ body{font-family:-apple-system,'Inter','Segoe UI',sans-serif;font-size:14px;colo
     <div class="onboard-desc">This app documents vehicles parked for extended periods on public streets. Together we build an objective picture of the parking situation in the neighbourhood.</div>
     <div class="onboard-steps">
       <div class="onboard-step"><div class="onboard-num">1</div><div class="onboard-step-text">Explore the map<span>Pins show reported vehicles. Colour = how long they've been parked.</span></div></div>
-      <div class="onboard-step"><div class="onboard-num">2</div><div class="onboard-step-text">Report a vehicle<span>Tap the spot on the map where the vehicle is parked, then fill in a few details.</span></div></div>
+      <div class="onboard-step"><div class="onboard-num">2</div><div class="onboard-step-text">Report a vehicle<span>Tap Report and take a photo — the plate and location fill in automatically.</span></div></div>
       <div class="onboard-step"><div class="onboard-num">3</div><div class="onboard-step-text">Confirm sightings<span>Tap an existing pin and confirm you saw it today. More confirmations = more reliable data.</span></div></div>
     </div>
     <button class="onboard-btn" onclick="closeOnboarding()">Get started</button>
@@ -522,9 +510,11 @@ body{font-family:-apple-system,'Inter','Segoe UI',sans-serif;font-size:14px;colo
 <!-- BOTTOM SHEET (report + nearby) -->
 <div class="sheet-backdrop" id="sheetBackdrop" onclick="closeSheet()"></div>
 <div class="bottom-sheet" id="bottomSheet">
-  <button class="sheet-close-btn" onclick="closeSheet()" aria-label="Close">
-    <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-  </button>
+  <div class="sheet-sticky-header">
+    <button class="sheet-close-btn" onclick="closeSheet()" aria-label="Close">
+      <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+  </div>
   <div class="sheet-handle"></div>
   <div class="sheet-title"><span id="sheetIcon">📍</span><span id="sheetTitleText"></span></div>
   <div class="sheet-sub" id="sheetSub"></div>
@@ -600,9 +590,11 @@ body{font-family:-apple-system,'Inter','Segoe UI',sans-serif;font-size:14px;colo
 <!-- PHOTO REPORT SHEET -->
 <div class="sheet-backdrop" id="photoBackdrop" onclick="finishPhotoQueue()"></div>
 <div class="bottom-sheet" id="photoSheet">
-  <button class="sheet-close-btn" onclick="finishPhotoQueue()" aria-label="Close">
-    <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-  </button>
+  <div class="sheet-sticky-header">
+    <button class="sheet-close-btn" onclick="finishPhotoQueue()" aria-label="Close">
+      <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+  </div>
   <div class="sheet-handle"></div>
   <div class="sheet-title">📷 Photo report</div>
   <div class="photo-queue-progress" id="photoQueueProgress"></div>
@@ -798,7 +790,7 @@ const DUR_PRESETS = [
 ];
 
 // ── STATE ──────────────────────────────────────────────────────────────────
-let map, markers={}, heatCells=[], heatOn=false, userMarker=null, zonePoly=null;
+let map, markers={}, heatCells=[], heatOn=true, userMarker=null, zonePoly=null;
 let vehicles=[], activeFilter='all', selectedId=null;
 let tapLat=null, tapLng=null, confirmedLat=null, confirmedLng=null;
 let selectedType='Passenger car', selectedColor='#D5D3CC', selectedColorName='Silver';
@@ -845,8 +837,9 @@ async function loadStats() {
 // ── MAP ────────────────────────────────────────────────────────────────────
 function initMap() {
   map = L.map('map', { center: CENTER, zoom: ZOOM, zoomControl: true });
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution: '© <a href="https://openstreetmap.org/copyright">OpenStreetMap</a>', maxZoom: 19
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+    attribution: '© <a href="https://openstreetmap.org/copyright">OpenStreetMap</a> © <a href="https://carto.com/attributions">CARTO</a>',
+    subdomains: 'abcd', maxZoom: 19,
   }).addTo(map);
 
   // Pilot zone polygon — interactive:false so clicks pass through to the map
@@ -888,7 +881,7 @@ function showPreview(lat, lng) {
   setTimeout(() => {
     if (!previewMap) {
       previewMap = L.map('previewMap', { center:[lat,lng], zoom:18, zoomControl:false });
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom:19 }).addTo(previewMap);
+      L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', { subdomains:'abcd', maxZoom:19 }).addTo(previewMap);
     } else { previewMap.setView([lat,lng], 18); }
     if (previewMarker) previewMap.removeLayer(previewMarker);
     const icon = L.divIcon({
@@ -942,8 +935,12 @@ function requestUserLocation(onInit=false) {
     return;
   }
 
+  const btn = document.getElementById('locateBtn');
+  if (btn) btn.style.opacity = '.5';
+
   navigator.geolocation.getCurrentPosition(
     pos => {
+      if (btn) btn.style.opacity = '';
       const lat = pos.coords.latitude;
       const lng = pos.coords.longitude;
 
@@ -964,6 +961,7 @@ function requestUserLocation(onInit=false) {
       if (!onInit) showToast('Map centred on your location');
     },
     err => {
+      if (btn) btn.style.opacity = '';
       if (!onInit) {
         const msgs = {
           1: 'Location access denied — check your browser settings',
@@ -1409,7 +1407,7 @@ function mobileTabTap(which) {
     statsBtn.classList.toggle('active', !isOpen);
     mapBtn.classList.toggle('active', isOpen);
   } else if (which === 'report') {
-    togglePhotoChoice();
+    startPhotoCapture();
   }
 }
 
@@ -1448,7 +1446,7 @@ function renderList(q='') {
   let vv=vehicles.filter(passFilter).sort((a,b)=>b.days-a.days);
   if(q){ const ql=q.toLowerCase(); vv=vv.filter(v=>(v.plateHint||'').toLowerCase().includes(ql)||v.type.toLowerCase().includes(ql)||(v.street||'').toLowerCase().includes(ql)||v.colorName.toLowerCase().includes(ql)); }
   const typeLabel=v=>v.type==='Cargo trailer'||v.type==='Camper trailer'?v.type:v.type;
-  const empty=`<div class="empty-state"><svg viewBox="0 0 24 24"><circle cx="12" cy="10" r="4"/><path d="M12 2C8.1 2 5 5.1 5 9c0 5.2 7 13 7 13s7-7.8 7-13c0-3.9-3.1-7-7-7z"/></svg><p><strong>No vehicles reported yet.</strong><br>Tap the map to report the first vehicle.</p></div>`;
+  const empty=`<div class="empty-state"><svg viewBox="0 0 24 24"><circle cx="12" cy="10" r="4"/><path d="M12 2C8.1 2 5 5.1 5 9c0 5.2 7 13 7 13s7-7.8 7-13c0-3.9-3.1-7-7-7z"/></svg><p><strong>No vehicles reported yet.</strong><br>Tap Report to photograph the first one.</p></div>`;
   const html=vv.length===0?empty:vv.map(v=>{
     let badge='';
     if(v.status==='pending') badge=`<span class="badge badge-gray">Pending</span>`;
@@ -1466,7 +1464,9 @@ function renderList(q='') {
     </div>`;
   }).join('');
   const search=`<div class="search-bar"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg><input type="text" placeholder="Search plate, street, type…" oninput="renderList(this.value)" id="vsearch"></div>`;
-  ['tab-vehicles','dtab-vehicles'].forEach(id=>{ const el=document.getElementById(id); if(el) el.innerHTML=search+'<div class="v-list">'+html+'</div>'; });
+  const importRow=`<button class="import-photos-row" onclick="startPhotoImport()"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>Import photos from your library</button>`;
+  const manualLink=`<div class="add-manually-row" onclick="openManualEntry()">Add a vehicle manually</div>`;
+  ['tab-vehicles','dtab-vehicles'].forEach(id=>{ const el=document.getElementById(id); if(el) el.innerHTML=search+importRow+'<div class="v-list">'+html+'</div>'+manualLink; });
 }
 
 // ── RENDER STREETS ─────────────────────────────────────────────────────────────
@@ -1493,16 +1493,10 @@ function closeFeedback() { document.getElementById('feedbackModal').classList.re
 // ── PHOTO REPORT FLOW ────────────────────────────────────────────────────────
 let pendingDeviceLocation = null;
 
-function togglePhotoChoice() {
-  document.getElementById('photoChoiceMenu').classList.toggle('open');
-  document.getElementById('photoChoiceBackdrop').classList.toggle('open');
-}
-function closePhotoChoice() {
-  document.getElementById('photoChoiceMenu').classList.remove('open');
-  document.getElementById('photoChoiceBackdrop').classList.remove('open');
-}
-
 function startPhotoCapture() {
+  // Report button — opens the camera directly, no picker, no menu. Using the
+  // capture-forcing input guarantees this: it's the only way to skip iOS's
+  // Photo Library / Choose File chooser entirely.
   pendingDeviceLocation = new Promise((resolve) => {
     if (!navigator.geolocation) { resolve(null); return; }
     navigator.geolocation.getCurrentPosition(
@@ -1511,12 +1505,17 @@ function startPhotoCapture() {
       { enableHighAccuracy: true, timeout: 12000 }
     );
   });
-  closePhotoChoice();
-  document.getElementById('photoInput').click();
+  document.getElementById('photoCameraInput').click();
+}
+
+function startPhotoImport() {
+  // Import photos — separate entry point (Vehicles list), opens the
+  // system's library picker with multi-select for a batch review session.
+  pendingDeviceLocation = null;
+  document.getElementById('photoImportInput').click();
 }
 
 function openManualEntry() {
-  closePhotoChoice();
   const openAt = (lat, lng) => showPreview(lat, lng);
   if (navigator.geolocation) {
     navigator.geolocation.getCurrentPosition(
@@ -1693,7 +1692,7 @@ function showPhotoMap(lat, lng) {
   setTimeout(() => {
     if (!photoPreviewMap) {
       photoPreviewMap = L.map('photoPreviewMap', { center, zoom:lat?18:16, zoomControl:false });
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom:19 }).addTo(photoPreviewMap);
+      L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', { subdomains:'abcd', maxZoom:19 }).addTo(photoPreviewMap);
     } else {
       photoPreviewMap.setView(center, lat?18:16);
     }
@@ -1777,7 +1776,8 @@ function closePhotoSheet() {
   const thumb=document.getElementById('photoThumb');
   if (thumb.src.startsWith('blob:')) URL.revokeObjectURL(thumb.src);
   thumb.src=''; thumb.style.display='none';
-  document.getElementById('photoInput').value='';
+  document.getElementById('photoCameraInput').value='';
+  document.getElementById('photoImportInput').value='';
   setMapInteractive(true);
 }
 
@@ -1881,6 +1881,8 @@ async function init() {
   initMap();
   await Promise.all([loadVehicles(), loadStats()]);
   document.getElementById('loadingOverlay').classList.add('hidden');
+  document.getElementById('heatBtn').classList.add('active-heat');
+  drawHeat();
   if (!localStorage.getItem('obs_onboarded')) showOnboarding();
   setInterval(() => { loadVehicles(); loadStats(); }, 60000);
 }
