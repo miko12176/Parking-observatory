@@ -1,106 +1,125 @@
-# Parking Observatory — Glitch Deployment Guide
+# Parking Observatory · Karl-Kunger Kiez
 
-## What's in this folder
+A civic web app for documenting long-term parked vehicles in the Karl-Kunger Kiez neighbourhood (Bouchestraße area, 12435 Berlin). Residents report and confirm sightings; a map shows all known vehicles colour-coded by how long they've been parked.
 
-```
-parking-observatory-glitch/
-├── server.js          ← Express backend + SQLite database
-├── package.json       ← Dependencies
-├── public/
-│   └── index.html     ← The full map UI
-└── README.md          ← This file
-```
+Live on Railway. No build step — plain HTML/CSS/JS frontend served from `/public`, Node.js/Express backend, SQLite database.
 
 ---
 
-## How to deploy on Glitch (step by step) 
+## Features
 
-### 1. Create a Glitch account
-Go to **glitch.com** and sign up (free, no credit card).
+### Public (residents)
+- **Map view** — Leaflet map with colour-coded pins: green (recent), orange (2+ weeks), red (3+ months), dark (unverified)
+- **Report a vehicle** — tap the map, fill in type, colour, and plate; plate is AES-256-GCM encrypted before storage
+- **Confirm a sighting** — tap an existing pin to record you saw it today; confidence score rises with each confirmation
+- **Report gone** — three independent "gone" reports within 48 hours removes a vehicle from the map
+- **Filter & search** — filter by duration (14 days, 90 days), vehicle type (trailers), or status (pending)
+- **Stats panel** — totals, duration breakdown, street occupancy
 
-### 2. Create a new project
-Click **New Project → Import from GitHub** — or simply click
-**New Project → glitch-hello-node** to get a blank Node.js project.
-
-### 3. Upload these files
-In the Glitch editor you'll see a file tree on the left.
-
-- Click each file in the tree and **replace its contents** with the
-  contents of the files in this folder.
-- For `public/index.html`: in Glitch, create a folder called `public`
-  first (click **New File**, type `public/index.html`).
-- Delete any files Glitch created that you don't need
-  (e.g. `views/`, `README.md` defaults).
-
-The final file tree in Glitch should look like:
-```
-.data/               ← Glitch creates this automatically (don't touch)
-public/
-  index.html
-package.json
-server.js
-```
-
-### 4. Set your encryption key
-In the Glitch editor, click **".env"** in the left sidebar.
-Add one line:
-```
-PLATE_KEY=your-secret-32-character-key-here
-```
-Make it at least 32 random characters. This encrypts all license plates
-in the database. **Write it down somewhere safe** — if you lose it,
-stored plates cannot be decrypted.
-
-Example key (generate your own!):
-```
-PLATE_KEY=Kx7mP2nQ9rL4vB8wY1tZ6cA3jE0sFhUi
-```
-
-### 5. That's it — Glitch installs dependencies and starts automatically
-Your app will be live at:
-```
-https://YOUR-PROJECT-NAME.glitch.me
-```
-Share that URL with your neighbors.
+### Moderator only
+- **Moderator mode** — PIN-protected; unlocks pin-dragging for repositioning, direct vehicle deletion, and access to Surveyor Mode. Auth issues a short-lived server-side token (6 hours); all protected routes are enforced server-side.
+- **Surveyor Mode** (`/surveyor.html`) — bulk photo intake workflow for an initial neighbourhood census walk. Upload up to 15 plate photos per batch; GPS coordinates are extracted from EXIF metadata automatically; plates are read via Plate Recognizer OCR. Every photo becomes a draft for human review before anything goes live — moderator corrects the plate, adjusts the pin, selects type and colour, then approves or rejects. Photos are held in memory only and are discarded the moment a draft is decided.
 
 ---
 
-## How data is stored
+## Tech stack
 
-Glitch persists a special `.data/` folder across restarts and deploys.
-The SQLite database (`observatory.db`) lives there automatically —
-no setup needed.
-
-**What's stored:**
-- Vehicle type, color, street
-- Encrypted license plate (AES-256-GCM)
-- Coordinates rounded to ~10 m
-- Anonymous session token (no accounts, no names)
-- Timestamps
-
-**What's never stored:**
-- Reporter identity
-- Plain-text license plates
-- Exact GPS coordinates
+| Layer | Technology |
+|---|---|
+| Runtime | Node.js ≥ 18 |
+| Framework | Express 4 |
+| Database | SQLite via `better-sqlite3` |
+| Maps | Leaflet.js 1.9 |
+| Geocoding | OpenStreetMap Nominatim (free, no key) |
+| Plate OCR | Plate Recognizer Snapshot API |
+| EXIF | `exifr` |
+| File upload | `multer` (memory storage — no disk writes) |
+| Hosting | Railway |
 
 ---
 
-## Keeping it running
+## Environment variables
 
-Glitch free tier "sleeps" projects after 5 minutes of inactivity.
-The first visitor after sleep waits ~10 seconds for it to wake up.
+Set these in Railway's variable panel before deploying.
 
-To keep it always awake (optional):
-- Sign up at **uptimerobot.com** (free)
-- Add a monitor pointing to `https://YOUR-PROJECT-NAME.glitch.me/api/stats`
-- Set interval to 4 minutes
-- UptimeRobot pings it every 4 minutes, keeping it awake
+| Variable | Required | Description |
+|---|---|---|
+| `PLATE_KEY` | Yes | 32-character AES-256-GCM encryption key for licence plates |
+| `MODERATOR_PIN` | Yes | PIN to unlock moderator and surveyor modes |
+| `PLATE_RECOGNIZER_TOKEN` | For Surveyor Mode | API token from [platerecognizer.com](https://platerecognizer.com) |
+| `PORT` | No | Set automatically by Railway |
 
 ---
 
-## Upgrading later
+## Database
 
-When you outgrow Glitch (more users, need backups, custom domain):
-- Export your `.data/observatory.db` file from Glitch
-- Move to **Railway.app** — same Node.js code works, PostgreSQL instead of SQLite
-- Or move to **Vercel + Supabase** for the full production setup described in the PRD
+SQLite database at `/data/observatory.db` (Railway persistent volume) with a fallback to `.data/observatory.db` for local development.
+
+### Tables
+
+**`vehicles`** — one row per reported vehicle. Key columns:
+- `lat`, `lng` — weighted centroid, updated with each confirmation
+- `plate_enc`, `plate_iv`, `plate_tag` — AES-256-GCM encrypted plate
+- `plate_hint` — public partial plate, e.g. `B ··· 34`
+- `status` — `pending` (resident-reported, awaiting confirmation) or `verified`
+- `confidence` — 0–99, rises with confirmations
+- `source` — `resident` (tap-reported) or `survey` (Surveyor Mode approved)
+- `duration_days` — reporter-supplied estimate; display uses whichever is greater between this and days since `first_seen`
+
+**`observations`** — each confirmation event logged with session ID and coordinates.
+
+**`gone_reports`** — "vehicle is gone" votes; three unique sessions within 48 hours triggers removal.
+
+---
+
+## API routes
+
+| Method | Path | Auth | Description |
+|---|---|---|---|
+| GET | `/api/vehicles` | Public | All vehicles (accepts `?filter=all\|14\|90\|trailer\|pending`) |
+| GET | `/api/vehicles/nearby` | Public | Vehicles within radius of a point |
+| POST | `/api/vehicles` | Public | Create resident report |
+| POST | `/api/vehicles/:id/confirm` | Public | Confirm a sighting |
+| POST | `/api/vehicles/:id/gone` | Public | Report vehicle gone |
+| GET | `/api/stats` | Public | Dashboard numbers |
+| POST | `/api/mod/auth` | — | Validate PIN; returns a bearer token |
+| DELETE | `/api/vehicles/:id` | Mod token | Remove a vehicle |
+| POST | `/api/surveyor/upload` | Mod token | Upload one photo; runs EXIF + OCR; returns draft |
+| GET | `/api/surveyor/drafts` | Mod token | List pending drafts |
+| POST | `/api/surveyor/drafts/:id/approve` | Mod token | Approve draft → creates vehicle record |
+| POST | `/api/surveyor/drafts/:id/reject` | Mod token | Discard draft |
+
+---
+
+## Deploying to Railway
+
+1. Push this repository to GitHub.
+2. Create a new Railway project linked to the repo.
+3. Add a Railway volume mounted at `/data` — the database lives here and survives deploys.
+4. Set the environment variables listed above.
+5. Railway runs `npm start` (`node server.js`) automatically.
+
+On first start the database and all tables are created automatically. Subsequent deploys run safe `ALTER TABLE` migrations so existing data is never lost.
+
+---
+
+## Local development
+
+```bash
+npm install
+PLATE_KEY=change-me-in-production-32chars!! \
+MODERATOR_PIN=1234 \
+node server.js
+```
+
+App runs on `http://localhost:3000`. The database falls back to `.data/observatory.db` locally. Surveyor Mode OCR is skipped if `PLATE_RECOGNIZER_TOKEN` is not set — plates can be typed manually in the review queue.
+
+---
+
+## Privacy & GDPR notes
+
+- Licence plates are encrypted with AES-256-GCM before storage; only a partial hint is shown publicly
+- GPS coordinates are resolved to street names server-side; raw coordinates are stored but not exposed without context
+- Session IDs are random strings generated client-side per browser session; no accounts, no cookies
+- Surveyor Mode photos are processed in memory only — never written to disk — and are deleted as soon as a draft is approved or rejected
+- Moderator tokens expire after 6 hours and are stored in process memory only (not the database)
